@@ -11,7 +11,7 @@ LANGUAGE plpgsql IMMUTABLE STRICT
   $BODY$;
   
 CREATE TYPE public.pgdms_status AS ENUM
-    ('work', 'progect', 'document');  
+    ('work', 'progect', 'document', 'archival');  
 
 CREATE TYPE public.pgdms_did AS
 (
@@ -210,6 +210,39 @@ CREATE OR REPLACE FUNCTION public.pgdms_changestatus(
     VOLATILE 
 AS $BODY$
 BEGIN
+  IF (did.status = 'work'::pgdms_status) THEN
+    IF (status = 'work'::pgdms_status) THEN
+      RETURN TRUE;
+    END IF;
+    IF (status = 'progect'::pgdms_status) THEN
+    END IF;
+    IF (status = 'document'::pgdms_status) THEN
+      EXECUTE 'UPDATE ' || entity || '
+	    SET ' || did_column || '.status = ''archival''::pgdms_status 
+	    WHERE (' || entity || '.' || did_column || ').family = '''||did.family||'''::uuid and (' || entity || '.' || did_column || ').status = ''document''::pgdms_status ' ;
+    END IF;
+  END IF;
+  IF (did.status = 'progect'::pgdms_status) THEN
+    IF (status = 'work'::pgdms_status) THEN
+      RETURN FALSE;
+    END IF;
+    IF (status = 'progect'::pgdms_status) THEN
+      RETURN TRUE;
+    END IF;
+    IF (status = 'document'::pgdms_status) THEN
+    END IF;
+  END IF;
+  IF (did.status = 'document'::pgdms_status) THEN
+    IF (status = 'work'::pgdms_status) THEN
+      RETURN FALSE;
+    END IF;
+    IF (status = 'progect'::pgdms_status) THEN
+      RETURN FALSE;
+    END IF;
+    IF (status = 'document'::pgdms_status) THEN
+      RETURN TRUE;
+    END IF;
+  END IF;
   EXECUTE 'UPDATE ' || entity || '
 	SET ' || did_column || '.status = ''' || status || ''' 
 	WHERE (' || entity || '.' || did_column || ').key = '''||did.key||'''::uuid';

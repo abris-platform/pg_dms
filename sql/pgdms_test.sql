@@ -76,6 +76,19 @@ SELECT public.pgdms_changestatus(
 	'document'::pgdms_status
 );
 
+
+INSERT INTO public.d(
+	key, num)
+	VALUES ((SELECT key::uuid FROM public.d where num = 1), 3);
+
+SELECT public.pgdms_changestatus(
+	'public.d', 
+	(select key from d where num = 3), 
+	'key', 
+	'document'::pgdms_status
+);
+
+
 INSERT INTO public.dup(
 	 d, name)
 	VALUES ( (SELECT key::uuid FROM public.d where num = 1), 'a1');
@@ -92,7 +105,7 @@ SELECT d.num FROM d,dn WHERE d.key = dn.d;
 
 INSERT INTO public.d(
 	key, num)
-	VALUES ('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 3);
+	VALUES ('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 4);
 
 SELECT count(*) FROM public.d;	
 
