@@ -215,8 +215,7 @@ AS $BODY$
 
 BEGIN
   EXECUTE 'UPDATE ' || entity || '
-	SET key = ' ||status || '
-	WHERE key = "' || did || '"';
+	SET key = ' ||status || ';
 END;
 
 $BODY$;
