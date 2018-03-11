@@ -38,8 +38,8 @@ CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_didup_eq(a pgdms_did, b pgdms_
     VOLATILE 
 AS $BODY$
 BEGIN
-  IF(a.family = b.key and a.status = 'document'::pgdms_status) THEN return true;
-  else return false;
+  IF(a.family = b.key and a.status = 'document'::pgdms_status) THEN RETURN true;
+  ELSE RETURN false;
   END IF;
 END;
 $BODY$;
@@ -60,8 +60,8 @@ CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_didn_eq(a pgdms_did, b pgdms_d
     VOLATILE 
 AS $BODY$
 BEGIN
-  IF(a.key = b.key) THEN return true;
-  else return false;
+  IF(a.key = b.key) THEN RETURN true;
+  ELSE RETURN false;
   END IF;
 END;
 $BODY$;
@@ -82,8 +82,8 @@ CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_did_eq(a pgdms_did, b pgdms_di
     VOLATILE 
 AS $BODY$
 BEGIN
-  IF(a.key = b.key) THEN return true;
-  else return false;
+  IF(a.key = b.key) THEN RETURN true;
+  ELSE RETURN false;
   END IF;
 END;
 $BODY$;
@@ -105,8 +105,8 @@ CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_status_eq(a pgdms_did, b pgdms
     VOLATILE 
 AS $BODY$
 BEGIN
-  IF(a.status = b) THEN return true;
-  else return false;
+  IF(a.status = b) THEN RETURN true;
+  ELSE RETURN false;
   END IF;
 END;
 $BODY$;
@@ -133,14 +133,11 @@ BEGIN
   ret.key = uuid_generate_v4();
   IF (a is null) THEN
     ret.family = ret.key;
-    --nado ispravit'
-    ret.status = 'work'::pgdms_status;
   ELSE 
     ret.family = a;
-    ret.status = 'document'::pgdms_status;
   END IF;  
-  --ret.status = 0;
-  return ret;
+  ret.status = 'work'::pgdms_status;
+  RETURN ret;
 END;
 $BODY$;  
   
@@ -159,7 +156,7 @@ DECLARE
   ret pgdms_didup;
 BEGIN
   ret.key = a;
-  return ret;
+  RETURN ret;
 END;
 $BODY$;  
   
@@ -178,7 +175,7 @@ DECLARE
   ret pgdms_didn;
 BEGIN
   ret.key = a;
-  return ret;
+  RETURN ret;
 END;
 $BODY$;  
   
@@ -186,39 +183,41 @@ CREATE CAST (uuid AS pgdms_didn)
 	WITH FUNCTION public.pgdms_didn(uuid)
 	AS ASSIGNMENT;  
 
-CREATE OR REPLACE FUNCTION public.pgdms_uuid(
-	a pgdms_did)
-    RETURNS uuid
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE 
-AS $BODY$
-BEGIN
-  return a.key;
-END;
-$BODY$;  
-  
-CREATE CAST (pgdms_did AS uuid)
-	WITH FUNCTION public.pgdms_uuid(pgdms_did)
-	AS ASSIGNMENT;  
+CREATE OR REPLACE FUNCTION public.pgdms_uuid( 
+  a pgdms_did) 
+    RETURNS uuid 
+    LANGUAGE 'plpgsql' 
+    COST 100 
+    VOLATILE  
+AS $BODY$ 
+BEGIN 
+  return a.key; 
+END; 
+$BODY$;   
+   
+CREATE CAST (pgdms_did AS uuid) 
+  WITH FUNCTION public.pgdms_uuid(pgdms_did) 
+  AS ASSIGNMENT;   
 
 CREATE OR REPLACE FUNCTION public.pgdms_changestatus(
 	entity text,
 	did pgdms_did,
+	did_column text,
 	status pgdms_status)
     RETURNS boolean
     LANGUAGE 'plpgsql'
-
     COST 100
     VOLATILE 
 AS $BODY$
-
 BEGIN
   EXECUTE 'UPDATE ' || entity || '
-	SET key = ' ||status || ';
+	SET ' || did_column || '.status = ''' || status || ''' 
+	WHERE (' || entity || '.' || did_column || ').key = '''||did.key||'''::uuid';
+  RETURN TRUE;
 END;
-
 $BODY$;
+
+
 
 
   

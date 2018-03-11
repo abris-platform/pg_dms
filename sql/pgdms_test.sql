@@ -69,7 +69,12 @@ INSERT INTO public.d(
 	key, num)
 	VALUES ((SELECT key::uuid FROM public.d where num = 1), 2);
 
-
+SELECT public.pgdms_changestatus(
+	'public.d', 
+	(select key from d where num = 2), 
+	'key', 
+	'document'::pgdms_status
+);
 
 INSERT INTO public.dup(
 	 d, name)

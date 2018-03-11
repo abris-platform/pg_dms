@@ -60,16 +60,20 @@ WITH (
 TABLESPACE pg_default;
 INSERT INTO public.d(
 	key, num)
-	VALUES (('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, '2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 0), 1);
+	VALUES (null::uuid, 1);
 	
 INSERT INTO public.d(
 	key, num)
-	VALUES (('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, '61f8cbf2-18ea-4a05-ace1-bd5878c453dd'::uuid, 1), 2);
-	
-SELECT key::uuid FROM public.d where num = 1;	
-                 key                  
---------------------------------------
- 2604bebd-3369-423c-be17-9e27e50c823b
+	VALUES ((SELECT key::uuid FROM public.d where num = 1), 2);
+SELECT public.pgdms_changestatus(
+	'public.d', 
+	(select key from d where num = 2), 
+	'key', 
+	'document'::pgdms_status
+);
+ pgdms_changestatus 
+--------------------
+ t
 (1 row)
 
 INSERT INTO public.dup(
@@ -100,6 +104,12 @@ SELECT count(*) FROM public.d;
  count 
 -------
      3
+(1 row)
+
+SELECT num FROM public.d WHERE key = 'document'::pgdms_status;	
+ num 
+-----
+   2
 (1 row)
 
 	
