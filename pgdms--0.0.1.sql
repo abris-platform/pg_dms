@@ -15,9 +15,12 @@ CREATE TYPE public.pgdms_status AS ENUM
 
 CREATE TYPE public.pgdms_did AS
 (
-    family uuid,
+    family uuid, 
     key uuid,
-    status pgdms_status
+    status pgdms_status,
+    created timestamp with time zone,
+    valid_from timestamp with time zone,
+    valid_until timestamp with time zone
 );
 
 CREATE TYPE public.pgdms_didup AS
@@ -131,6 +134,7 @@ DECLARE
   ret pgdms_did;
 BEGIN
   ret.key = uuid_generate_v4();
+  ret.created = now();
   IF (a is null) THEN
     ret.family = ret.key;
   ELSE 
@@ -197,7 +201,33 @@ $BODY$;
    
 CREATE CAST (pgdms_did AS uuid) 
   WITH FUNCTION public.pgdms_uuid(pgdms_did) 
-  AS ASSIGNMENT;   
+  AS ASSIGNMENT;
+  
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_setstatus_document(
+	entity text,
+	did pgdms_did,
+	did_column text)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  EXECUTE 'UPDATE ' || entity || '
+    SET ' || did_column || '.status = ''archival''::pgdms_status, ' || did_column || '.valid_until  = now()  
+    WHERE (' || entity || '.' || did_column || ').family = '''||did.family||'''::uuid and (' || entity || '.' || did_column || ').status = ''document''::pgdms_status ' ;
+  EXECUTE 'UPDATE ' || entity || '
+    SET ' || did_column || '.status = ''document''::pgdms_status, '  || did_column || '.valid_from   = now() 
+    WHERE (' || entity || '.' || did_column || ').key = '''||did.key||'''::uuid';
+  RETURN TRUE;  
+END;
+$BODY$;
+
+
+  
+     
 
 CREATE OR REPLACE FUNCTION public.pgdms_changestatus(
 	entity text,
@@ -217,9 +247,7 @@ BEGIN
     IF (status = 'progect'::pgdms_status) THEN
     END IF;
     IF (status = 'document'::pgdms_status) THEN
-      EXECUTE 'UPDATE ' || entity || '
-	    SET ' || did_column || '.status = ''archival''::pgdms_status 
-	    WHERE (' || entity || '.' || did_column || ').family = '''||did.family||'''::uuid and (' || entity || '.' || did_column || ').status = ''document''::pgdms_status ' ;
+      RETURN pgdms_setstatus_document(entity, did, did_column);
     END IF;
   END IF;
   IF (did.status = 'progect'::pgdms_status) THEN
@@ -230,6 +258,7 @@ BEGIN
       RETURN TRUE;
     END IF;
     IF (status = 'document'::pgdms_status) THEN
+      RETURN pgdms_setstatus_document(entity, did, did_column);
     END IF;
   END IF;
   IF (did.status = 'document'::pgdms_status) THEN
