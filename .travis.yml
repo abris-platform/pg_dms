@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+- '6'
+
+services:
+  - postgresql
+addons:
+  postgresql: "9.5"
+
+before_install:
+- stty cols 80
+dist: trusty
+sudo: required
+
+script:
+- makepkg -fci
+- sudo systemctl restart postgresql.service
+- REGRESS_OPTS=--user=postgres make installcheck
