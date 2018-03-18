@@ -13,8 +13,6 @@ arch:
   - yaourt
   - archiso
  script:
-
-script:
-- makepkg -fci
-- sudo systemctl restart postgresql.service
-- REGRESS_OPTS=--user=postgres make installcheck
+  - makepkg -fci
+  - sudo systemctl restart postgresql.service
+  - REGRESS_OPTS=--user=postgres make installcheck
