@@ -1,16 +1,18 @@
-language: node_js
-node_js:
-- '6'
-
 services:
   - postgresql
 addons:
   postgresql: "9.5"
 
-before_install:
-- stty cols 80
-dist: trusty
 sudo: required
+
+arch:
+ repos:
+  - archlinuxfr=http://repo.archlinux.fr/$arch
+ packages:
+  # pacman packages
+  - yaourt
+  - archiso
+ script:
 
 script:
 - makepkg -fci
