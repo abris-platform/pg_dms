@@ -10,8 +10,124 @@ LANGUAGE plpgsql IMMUTABLE STRICT
     END;
   $BODY$;
   
+  
+CREATE FUNCTION public.pgdms_get_pk(
+    entity text
+  )
+  RETURNS text
+  LANGUAGE plpgsql IMMUTABLE STRICT
+  AS $BODY$
+BEGIN
+  RETURN (SELECT at.attname AS pk
+  FROM pg_class r
+    LEFT JOIN pg_namespace n ON n.oid = r.relnamespace
+    LEFT JOIN pg_constraint c ON c.conrelid = r.oid AND c.contype = 'p'::char
+    LEFT JOIN pg_attribute at ON c.conkey[1] = at.attnum AND at.attrelid = c.conrelid
+  WHERE (n.nspname ||'.'||r.relname) = entity LIMIT 1);
+END;
+$BODY$;  
+  
+  
+  
+CREATE TYPE public.pgdms_actiontype AS ENUM
+  ('created', 'agreed', 'approved', 'rejected');  
+  
+CREATE OR REPLACE FUNCTION public.pgdms_to_text(
+	a pgdms_actiontype)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF (a = 'created'::pgdms_actiontype)  THEN RETURN 'Создано';     END IF;
+  IF (a = 'agreed'::pgdms_actiontype)   THEN RETURN 'Согласовано'; END IF;  
+  IF (a = 'approved'::pgdms_actiontype) THEN RETURN 'Утверждено';  END IF;  
+  IF (a = 'rejected'::pgdms_actiontype) THEN RETURN 'Отклонено';   END IF;
+ END;
+$BODY$;  
+  
+
+
+CREATE TYPE public.pgdms_action as
+(
+    dt timestamp with time zone,
+    usr text,
+    act pgdms_actiontype,
+    nt text
+); 
+  
 CREATE TYPE public.pgdms_status AS ENUM
     ('work', 'progect', 'document', 'archival');  
+
+CREATE OR REPLACE FUNCTION public.pgdms_to_text(
+	a pgdms_status)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF (a = 'work'::pgdms_status)     THEN RETURN 'Материал'; END IF;
+  IF (a = 'progect'::pgdms_status)  THEN RETURN 'Проект';   END IF;  
+  IF (a = 'document'::pgdms_status) THEN RETURN 'Документ'; END IF;  
+  IF (a = 'archival'::pgdms_status) THEN RETURN 'Архив';    END IF;
+ END;
+$BODY$;  
+
+
+
+ 
+CREATE OR REPLACE FUNCTION public.pgdms_to_text(
+	a timestamp with time zone)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  RETURN to_char (a, 'DD.MM.YY HH12:MI');
+END;
+$BODY$;  
+
+CREATE OR REPLACE FUNCTION public.pgdms_to_text(
+	a pgdms_action)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  RETURN pgdms_to_text((a).dt) || ' ' || pgdms_to_text((a).act) || ' ' || (a).usr || COALESCE(' (' || (a).nt || ')', '');
+END;
+$BODY$;
+
+
+
+CREATE CAST (pgdms_action AS text)
+	WITH FUNCTION public.pgdms_to_text(pgdms_action)
+	AS ASSIGNMENT;  
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_to_text(
+	a pgdms_action[])
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE
+  ary ALIAS FOR $1;
+  ret text;
+BEGIN
+  ret = ary[0]::text;
+  FOR i IN 1..array_upper(ary, 1) LOOP
+    ret = ret || '; ' || ary[i]::text ;
+  END LOOP;
+  RETURN ret;
+END;
+$BODY$;  
+
 
 CREATE TYPE public.pgdms_did AS
 (
@@ -19,8 +135,10 @@ CREATE TYPE public.pgdms_did AS
     key uuid,
     status pgdms_status,
     created timestamp with time zone,
+    hash uuid,
     valid_from timestamp with time zone,
-    valid_until timestamp with time zone
+    valid_until timestamp with time zone,
+    ac pgdms_action[]
 );
 
 CREATE TYPE public.pgdms_didup AS
@@ -135,6 +253,7 @@ DECLARE
 BEGIN
   ret.key = uuid_generate_v4();
   ret.created = now();
+  ret.ac[0] = (now(),(SELECT USER), 'created'::pgdms_actiontype , null)::pgdms_action; 
   IF (a is null) THEN
     ret.family = ret.key;
   ELSE 
@@ -207,8 +326,7 @@ CREATE CAST (pgdms_did AS uuid)
 
 CREATE OR REPLACE FUNCTION public.pgdms_setstatus_document(
 	entity text,
-	did pgdms_did,
-	did_column text)
+	did pgdms_did)
     RETURNS boolean
     LANGUAGE 'plpgsql'
     COST 100
@@ -216,23 +334,46 @@ CREATE OR REPLACE FUNCTION public.pgdms_setstatus_document(
 AS $BODY$
 BEGIN
   EXECUTE 'UPDATE ' || entity || '
-    SET ' || did_column || '.status = ''archival''::pgdms_status, ' || did_column || '.valid_until  = now()  
-    WHERE (' || entity || '.' || did_column || ').family = '''||did.family||'''::uuid and (' || entity || '.' || did_column || ').status = ''document''::pgdms_status ' ;
+    SET ' || pgdms_get_pk(entity) || '.status = ''archival''::pgdms_status, ' || pgdms_get_pk(entity) || '.valid_until  = now()  
+    WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').family = '''||did.family||'''::uuid and (' || entity || '.' || pgdms_get_pk(entity) || ').status = ''document''::pgdms_status ' ;
   EXECUTE 'UPDATE ' || entity || '
-    SET ' || did_column || '.status = ''document''::pgdms_status, '  || did_column || '.valid_from   = now() 
-    WHERE (' || entity || '.' || did_column || ').key = '''||did.key||'''::uuid';
+    SET ' || pgdms_get_pk(entity) || '.status = ''document''::pgdms_status, '  || pgdms_get_pk(entity) || '.valid_from   = now() 
+    WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||did.key||'''::uuid';
   RETURN TRUE;  
 END;
 $BODY$;
 
 
-  
+CREATE OR REPLACE FUNCTION public.pgdms_set_hash(
+	entity text,
+	did pgdms_did)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE
+  o oid;
+  h uuid;
+BEGIN
+  EXECUTE 'select tableoid from '|| entity ||' limit 1' INTO o;
+  EXECUTE 'SELECT MD5(CONCAT('||(
+	SELECT string_agg(a.attname, ',') 
+	  FROM pg_catalog.pg_attribute a 
+	  WHERE a.attrelid = o AND a.attnum > 0 AND a.attname <> pgdms_get_pk(entity)) ||
+	'))::uuid from ' || entity || ' 
+	WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||did.key||'''::uuid' INTO h;
+  EXECUTE 'UPDATE ' || entity || '
+   SET ' || pgdms_get_pk(entity) || '.hash = ''' || h || '''
+   WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||did.key||'''::uuid';
+  RETURN;
+END;
+$BODY$;  
      
 
-CREATE OR REPLACE FUNCTION public.pgdms_changestatus(
+CREATE OR REPLACE FUNCTION public.pgdms_change_status(
 	entity text,
 	did pgdms_did,
-	did_column text,
 	status pgdms_status)
     RETURNS boolean
     LANGUAGE 'plpgsql'
@@ -244,10 +385,11 @@ BEGIN
     IF (status = 'work'::pgdms_status) THEN
       RETURN TRUE;
     END IF;
-    IF (status = 'progect'::pgdms_status) THEN
+    IF (status = 'progect'::pgdms_status OR status = 'document'::pgdms_status) THEN
+      PERFORM pgdms_set_hash(entity, did);
     END IF;
     IF (status = 'document'::pgdms_status) THEN
-      RETURN pgdms_setstatus_document(entity, did, did_column);
+      RETURN pgdms_setstatus_document(entity, did);
     END IF;
   END IF;
   IF (did.status = 'progect'::pgdms_status) THEN
@@ -258,7 +400,7 @@ BEGIN
       RETURN TRUE;
     END IF;
     IF (status = 'document'::pgdms_status) THEN
-      RETURN pgdms_setstatus_document(entity, did, did_column);
+      RETURN pgdms_setstatus_document(entity, did);
     END IF;
   END IF;
   IF (did.status = 'document'::pgdms_status) THEN
@@ -273,13 +415,166 @@ BEGIN
     END IF;
   END IF;
   EXECUTE 'UPDATE ' || entity || '
-	SET ' || did_column || '.status = ''' || status || ''' 
-	WHERE (' || entity || '.' || did_column || ').key = '''||did.key||'''::uuid';
+	SET ' || pgdms_get_pk(entity) || '.status = ''' || status || ''' 
+	WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||did.key||'''::uuid';
   RETURN TRUE;
 END;
 $BODY$;
 
 
 
+CREATE OR REPLACE FUNCTION public.pgdms_set_action(
+	entity text,
+	did pgdms_did,
+	action pgdms_actiontype,
+	note text)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE
+  f boolean;
+BEGIN
+  IF (action = 'created'::pgdms_actiontype) THEN
+    RAISE NOTICE 'Действие ''created'' создается автоматически';
+    RETURN FALSE;
+  END IF;
 
+  EXECUTE 'UPDATE ' || entity || '
+   SET ' || pgdms_get_pk(entity) || '.ac = (' || entity || '.' || pgdms_get_pk(entity) || ').ac || ('''||now()||''','''||
+      (SELECT USER)||''', '''||action||'''::pgdms_actiontype ,'|| COALESCE(''''||note||'''', 'null')||')::pgdms_action
+   WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||did.key||'''::uuid';
+
+  IF (action = 'agreed'::pgdms_actiontype) THEN
+	IF (did.status = 'work'::pgdms_status) THEN
+	  f = pgdms_change_status(entity, did,  'progect'::pgdms_status);
+	END IF;
+    RETURN TRUE;
+  END IF;
+
+  IF (action = 'approved'::pgdms_actiontype ) THEN
+	IF (did.status = 'progect'::pgdms_status) THEN
+	  f = pgdms_change_status(entity, did, 'document'::pgdms_status);
+	END IF;
+    RETURN TRUE;
+  END IF;
+
+  
+  RETURN TRUE;
+END;
+$BODY$;
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_get_actions(
+	a pgdms_did)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  RETURN pgdms_to_text((a).ac);
+END;
+$BODY$;  
+  
+CREATE OR REPLACE FUNCTION public.pgdms_get_status(
+	a pgdms_did)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  RETURN pgdms_to_text((a).status);
+END;
+$BODY$;  
+  
+CREATE OR REPLACE FUNCTION public.pgdms_get_hash(
+	a pgdms_did)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  RETURN (a).hash;
+END;
+$BODY$;  
+
+CREATE OR REPLACE FUNCTION public.pgdms_is_document(
+	a pgdms_did)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF ((a).status = 'document'::pgdms_status) THEN
+    RETURN TRUE;
+  ELSE
+    RETURN FALSE;
+  END IF;
+END;
+$BODY$;  
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_is_document(
+	a pgdms_did,
+	ts timestamp with time zone)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF (((a).status = 'document'::pgdms_status OR (a).status = 'archival'::pgdms_status) AND 
+       (a).valid_from <= ts AND  ( (a).valid_until > ts OR (a).valid_until IS NULL)) THEN
+    RETURN TRUE;
+  ELSE
+    RETURN FALSE;
+  END IF;
+END;
+$BODY$;  
+  
+CREATE OR REPLACE FUNCTION public.pgdms_is_family(
+	a pgdms_did,
+	f pgdms_did)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF ((a).family = f.family) THEN
+    RETURN TRUE;
+  ELSE
+    RETURN FALSE;
+  END IF;
+END;
+$BODY$;  
+    
+
+CREATE OR REPLACE FUNCTION public.pgdms_is_last(
+    entity text,
+	a pgdms_did)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE 
+  f uuid;
+BEGIN
+  EXECUTE 'SELECT (' || entity || '.' || pgdms_get_pk(entity) || ').key from ' || entity || ' where (' || entity || '.' ||
+    pgdms_get_pk(entity) || ').family = '''||(a).family||''' order by (' || entity || '.' || pgdms_get_pk(entity) || ').family desc limit 1' INTO f;
+  IF ((a).key = f) THEN
+    RETURN TRUE;
+  ELSE
+    RETURN FALSE;
+  END IF;
+END;
+$BODY$;
+ 
+  
   

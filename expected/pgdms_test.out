@@ -65,28 +65,62 @@ INSERT INTO public.d(
 INSERT INTO public.d(
 	key, num)
 	VALUES ((SELECT key::uuid FROM public.d where num = 1), 2);
-SELECT public.pgdms_changestatus(
+SELECT public.pgdms_set_action(
 	'public.d', 
 	(select key from d where num = 2), 
-	'key', 
-	'document'::pgdms_status
+	'created'::pgdms_actiontype,
+	'Yra'
 );
- pgdms_changestatus 
---------------------
+NOTICE:  Действие 'created' создается автоматически
+ pgdms_set_action 
+------------------
+ f
+(1 row)
+
+SELECT public.pgdms_set_action(
+	'public.d', 
+	(select key from d where num = 2), 
+	'agreed'::pgdms_actiontype,
+	'--'
+);
+ pgdms_set_action 
+------------------
+ t
+(1 row)
+
+SELECT public.pgdms_set_action(
+	'public.d', 
+	(select key from d where num = 2), 
+	'approved'::pgdms_actiontype,
+	'---'
+);
+ pgdms_set_action 
+------------------
  t
 (1 row)
 
 INSERT INTO public.d(
 	key, num)
 	VALUES ((SELECT key::uuid FROM public.d where num = 1), 3);
-SELECT public.pgdms_changestatus(
+SELECT public.pgdms_set_action(
 	'public.d', 
 	(select key from d where num = 3), 
-	'key', 
-	'document'::pgdms_status
+	'agreed'::pgdms_actiontype,
+	'--'
 );
- pgdms_changestatus 
---------------------
+ pgdms_set_action 
+------------------
+ t
+(1 row)
+
+SELECT public.pgdms_set_action(
+	'public.d', 
+	(select key from d where num = 3), 
+	'approved'::pgdms_actiontype,
+	null
+);
+ pgdms_set_action 
+------------------
  t
 (1 row)
 
@@ -127,4 +161,42 @@ SELECT num FROM public.d WHERE key = 'document'::pgdms_status;
 (1 row)
 
 	
-	
+--Вывод дествий по всем строкам
+--Результат с плановой ошибкой из-за времени	
+--SELECT pgdms_get_actions(key),pgdms_get_hash(key),pgdms_get_status(key) FROM d;	
+--Вывод статуса строк
+SELECT pgdms_get_status(key) FROM d;	
+ pgdms_get_status 
+------------------
+ Материал
+ Архив
+ Документ
+ Материал
+(4 rows)
+
+--Вывод только действующих документов
+SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_document(key);	
+ num | pgdms_get_status 
+-----+------------------
+   3 | Документ
+(1 row)
+
+--Вывод только  документов на дату
+--SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_document(key, now()-'20 milliseconds'::interval);
+--Вывод записей одного семейства
+SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_family(key, (select key from d where num = 1));	
+ num | pgdms_get_status 
+-----+------------------
+   1 | Материал
+   2 | Архив
+   3 | Документ
+(3 rows)
+
+--Вывод последных записей
+SELECT num FROM d WHERE pgdms_is_last('public.d', key);
+ num 
+-----
+   1
+   4
+(2 rows)
+

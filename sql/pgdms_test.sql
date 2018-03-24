@@ -69,24 +69,49 @@ INSERT INTO public.d(
 	key, num)
 	VALUES ((SELECT key::uuid FROM public.d where num = 1), 2);
 
-SELECT public.pgdms_changestatus(
+
+SELECT public.pgdms_set_action(
 	'public.d', 
 	(select key from d where num = 2), 
-	'key', 
-	'document'::pgdms_status
+	'created'::pgdms_actiontype,
+	'Yra'
 );
+
+SELECT public.pgdms_set_action(
+	'public.d', 
+	(select key from d where num = 2), 
+	'agreed'::pgdms_actiontype,
+	'--'
+);
+
+SELECT public.pgdms_set_action(
+	'public.d', 
+	(select key from d where num = 2), 
+	'approved'::pgdms_actiontype,
+	'---'
+);
+
+
 
 
 INSERT INTO public.d(
 	key, num)
 	VALUES ((SELECT key::uuid FROM public.d where num = 1), 3);
 
-SELECT public.pgdms_changestatus(
+SELECT public.pgdms_set_action(
 	'public.d', 
 	(select key from d where num = 3), 
-	'key', 
-	'document'::pgdms_status
+	'agreed'::pgdms_actiontype,
+	'--'
 );
+
+SELECT public.pgdms_set_action(
+	'public.d', 
+	(select key from d where num = 3), 
+	'approved'::pgdms_actiontype,
+	null
+);
+
 
 
 INSERT INTO public.dup(
@@ -111,5 +136,22 @@ SELECT count(*) FROM public.d;
 
 SELECT num FROM public.d WHERE key = 'document'::pgdms_status;	
 	
-	
+--Вывод дествий по всем строкам
+--Результат с плановой ошибкой из-за времени	
+--SELECT pgdms_get_actions(key),pgdms_get_hash(key),pgdms_get_status(key) FROM d;	
+
+--Вывод статуса строк
+SELECT pgdms_get_status(key) FROM d;	
+
+
+--Вывод только действующих документов
+SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_document(key);	
+
+--Вывод только  документов на дату
+--SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_document(key, now()-'20 milliseconds'::interval);
+
+--Вывод записей одного семейства
+SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_family(key, (select key from d where num = 1));	
+--Вывод последных записей
+SELECT num FROM d WHERE pgdms_is_last('public.d', key);
 
