@@ -1,5 +1,6 @@
 services:
   - postgresql
+  - docker
 addons:
   postgresql: "9.5"
 
