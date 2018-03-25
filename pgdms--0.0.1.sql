@@ -248,6 +248,58 @@ CREATE OPERATOR pg_catalog.=(
 
 
 
+CREATE OR REPLACE FUNCTION public.pgdms_didup_text_eq(a pgdms_didup, b text)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF(a.key::text = substring(b,38,70)) THEN RETURN true;
+  ELSE RETURN false;
+  END IF;
+END;
+$BODY$;
+
+CREATE OPERATOR pg_catalog.=(
+  PROCEDURE = pgdms_didup_text_eq,
+  LEFTARG = pgdms_didup,
+  RIGHTARG = text,
+  COMMUTATOR = =,
+  NEGATOR = <>,
+  HASHES,
+  MERGES);
+
+CREATE OR REPLACE FUNCTION public.pgdms_didn_text_eq(a pgdms_didn, b text)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF(a.key::text = substring(b,1,36)) THEN RETURN true;
+  ELSE RETURN false;
+  END IF;
+END;
+$BODY$;
+
+CREATE OPERATOR pg_catalog.=(
+  PROCEDURE = pgdms_didn_text_eq,
+  LEFTARG = pgdms_didn,
+  RIGHTARG = text,
+  COMMUTATOR = =,
+  NEGATOR = <>,
+  HASHES,
+  MERGES);
+
+
+
+
+
+
+
+
+
 
 
 
@@ -369,7 +421,7 @@ CREATE OR REPLACE FUNCTION public.pgdms_uuid(
     VOLATILE  
 AS $BODY$ 
 BEGIN 
-  return a.key; 
+  RETURN a.key; 
 END; 
 $BODY$;   
    
@@ -387,13 +439,73 @@ CREATE OR REPLACE FUNCTION public.pgdms_uuid(
     VOLATILE  
 AS $BODY$ 
 BEGIN 
-  return a.key; 
+  RETURN a.key; 
 END; 
 $BODY$;   
    
 CREATE CAST (pgdms_didup AS uuid) 
   WITH FUNCTION public.pgdms_uuid(pgdms_didup) 
   AS ASSIGNMENT;
+
+
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_text( 
+  a pgdms_didup) 
+    RETURNS text 
+    LANGUAGE 'plpgsql' 
+    COST 100 
+    VOLATILE  
+AS $BODY$ 
+BEGIN 
+  RETURN (a.key)::text; 
+END; 
+$BODY$;   
+   
+CREATE CAST (pgdms_didup AS text) 
+  WITH FUNCTION public.pgdms_text(pgdms_didup) 
+  AS ASSIGNMENT;
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_text( 
+  a pgdms_didn) 
+    RETURNS text 
+    LANGUAGE 'plpgsql' 
+    COST 100 
+    VOLATILE  
+AS $BODY$ 
+BEGIN 
+  RETURN (a.key)::text; 
+END; 
+$BODY$;   
+   
+CREATE CAST (pgdms_didn AS text) 
+  WITH FUNCTION public.pgdms_text(pgdms_didn) 
+  AS ASSIGNMENT;
+  
+
+CREATE OR REPLACE FUNCTION public.pgdms_text( 
+  a pgdms_did) 
+    RETURNS text 
+    LANGUAGE 'plpgsql' 
+    COST 100 
+    VOLATILE  
+AS $BODY$ 
+BEGIN 
+--  IF (a.status = 'document'::pgdms_status) THEN
+--    RETURN (a.key)::text ||','||(a.family)::text;
+--  ELSE 
+--    RETURN (a.key)::text ||',';
+--  END IF;
+  RETURN (a.key)::text ||','||(a.family)::text;
+END; 
+$BODY$;   
+   
+CREATE CAST (pgdms_did AS text) 
+  WITH FUNCTION public.pgdms_text(pgdms_did) 
+  AS ASSIGNMENT;
+  
+
 
 
 
@@ -406,7 +518,7 @@ CREATE OR REPLACE FUNCTION public.pgdms_uuid(
     VOLATILE  
 AS $BODY$ 
 BEGIN 
-  return a.key; 
+  RETURN a.key; 
 END; 
 $BODY$;   
    
