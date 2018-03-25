@@ -145,6 +145,18 @@ SELECT d.num FROM d,dn WHERE d.key = dn.d;
    1
 (1 row)
 
+SELECT d.num FROM d,dup WHERE dup.d = d.key;
+ num 
+-----
+   3
+(1 row)
+
+SELECT d.num FROM d,dn WHERE dn.d = d.key;	
+ num 
+-----
+   1
+(1 row)
+
 INSERT INTO public.d(
 	key, num)
 	VALUES ('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 4);

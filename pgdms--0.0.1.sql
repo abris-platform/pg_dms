@@ -196,6 +196,61 @@ CREATE OPERATOR pg_catalog.=(
   HASHES,
   MERGES);
   
+
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_didup_pgdms_did_eq(b pgdms_didup, a pgdms_did)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF(a.family = b.key and a.status = 'document'::pgdms_status) THEN RETURN true;
+  ELSE RETURN false;
+  END IF;
+END;
+$BODY$;
+
+CREATE OPERATOR pg_catalog.=(
+  PROCEDURE = pgdms_didup_pgdms_did_eq,
+  LEFTARG = pgdms_didup,
+  RIGHTARG = pgdms_did,
+  COMMUTATOR = =,
+  NEGATOR = <>,
+  HASHES,
+  MERGES);
+
+CREATE OR REPLACE FUNCTION public.pgdms_didn_pgdms_did_eq(b pgdms_didn, a pgdms_did)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF(a.key = b.key) THEN RETURN true;
+  ELSE RETURN false;
+  END IF;
+END;
+$BODY$;
+
+CREATE OPERATOR pg_catalog.=(
+  PROCEDURE = pgdms_didn_pgdms_did_eq,
+  LEFTARG = pgdms_didn,
+  RIGHTARG = pgdms_did,
+  COMMUTATOR = =,
+  NEGATOR = <>,
+  HASHES,
+  MERGES);
+
+
+
+
+
+
+
+
 CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_did_eq(a pgdms_did, b pgdms_did)
     RETURNS boolean
     LANGUAGE 'plpgsql'
@@ -322,6 +377,45 @@ CREATE CAST (pgdms_did AS uuid)
   WITH FUNCTION public.pgdms_uuid(pgdms_did) 
   AS ASSIGNMENT;
   
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_uuid( 
+  a pgdms_didup) 
+    RETURNS uuid 
+    LANGUAGE 'plpgsql' 
+    COST 100 
+    VOLATILE  
+AS $BODY$ 
+BEGIN 
+  return a.key; 
+END; 
+$BODY$;   
+   
+CREATE CAST (pgdms_didup AS uuid) 
+  WITH FUNCTION public.pgdms_uuid(pgdms_didup) 
+  AS ASSIGNMENT;
+
+
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_uuid( 
+  a pgdms_didn) 
+    RETURNS uuid 
+    LANGUAGE 'plpgsql' 
+    COST 100 
+    VOLATILE  
+AS $BODY$ 
+BEGIN 
+  return a.key; 
+END; 
+$BODY$;   
+   
+CREATE CAST (pgdms_didn AS uuid) 
+  WITH FUNCTION public.pgdms_uuid(pgdms_didn) 
+  AS ASSIGNMENT;
+
+
+
 
 
 CREATE OR REPLACE FUNCTION public.pgdms_setstatus_document(

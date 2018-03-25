@@ -128,6 +128,11 @@ SELECT d.num FROM d,dup WHERE d.key = dup.d;
 
 SELECT d.num FROM d,dn WHERE d.key = dn.d;	
 
+SELECT d.num FROM d,dup WHERE dup.d = d.key;
+
+SELECT d.num FROM d,dn WHERE dn.d = d.key;	
+
+
 INSERT INTO public.d(
 	key, num)
 	VALUES ('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 4);
