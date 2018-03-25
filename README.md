@@ -1,4 +1,4 @@
-# pgdms
+# pgdms [![Build Status](https://travis-ci.org/abris-platform/pgdms.svg?branch=master)](https://travis-ci.org/abris-platform/pgdms)
 
 ```
 makepkg -fci
