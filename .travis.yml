@@ -1,27 +1,22 @@
 sudo: required
 
-env:
-  - ARCH_TRAVIS_CLEAN_CHROOT=1
-
 services:
-  - postgresql
-  - docker
-addons:
-  postgresql: "9.5"
+- docker
 
 arch:
- repos:
-  - archlinuxfr=http://repo.archlinux.fr/$arch
- packages:
+  repos:
+  - papyros=http://dash.papyros.io/repos/$repo/$arch
+  packages:
   # pacman packages
-  - yaourt
-  - archiso
- script:
-  - makepkg -fci
-  - sudo systemctl restart postgresql.service
-  - REGRESS_OPTS=--user=postgres make installcheck
+  - python
+  - perl
+  # aur packages
+  - go-git
+  # packages from papyros repo
+  - papyros-shell
+  script:
+  - "./build_script.sh"
 
 script:
- - "travis_wait 30 sleep 1800 &"
- - curl -s https://raw.githubusercontent.com/fossasia/arch-travis/master/arch-travis.sh | bash
- - "ls -al"
+- "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
+
