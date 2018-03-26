@@ -1,23 +1,28 @@
-services:
-  - postgresql
-  - docker
-addons:
-  postgresql: "9.5"
-
 sudo: required
 
+env:
+  - ARCH_TRAVIS_CLEAN_CHROOT=1
+
+language: c
+
+compiler:
+  - gcc
+  - clang
+
 arch:
- repos:
-  - archlinuxfr=http://repo.archlinux.fr/$arch
- packages:
-  # pacman packages
-  - yaourt
-  - archiso
- script:
-  - makepkg -fci
-  - sudo systemctl restart postgresql.service
-  - REGRESS_OPTS=--user=postgres make installcheck
+  repos:
+    - archlinuxfr=http://repo.archlinux.fr/$arch
+  packages:
+    - procps-ng
+    - reflector
+    # aur
+    - screenfetch-git
+  script:
+    - "sudo screenfetch"
+    - "reflector --verbose -l 20 --sort rate -p https"
+    - "echo $CC"
+    - "touch test_file"
 
 script:
- - "travis_wait 30 sleep 1800 &"
- - curl -s https://raw.githubusercontent.com/fossasia/arch-travis/master/arch-travis.sh | bash
+  - "curl -s https://raw.githubusercontent.com/fossasia/arch-travis/master/arch-travis.sh | bash"
+  - "ls -l"
