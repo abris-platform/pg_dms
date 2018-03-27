@@ -413,6 +413,52 @@ CREATE CAST (uuid AS pgdms_didn)
 	WITH FUNCTION public.pgdms_didn(uuid)
 	AS ASSIGNMENT;  
 
+
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_didup(
+	a text)
+    RETURNS pgdms_didup
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE
+  ret pgdms_didup;
+BEGIN
+  ret.key = substring(a,38,70)::uuid;
+  RETURN ret;
+END;
+$BODY$;  
+  
+CREATE CAST (text AS pgdms_didup)
+	WITH FUNCTION public.pgdms_didup(text)
+	AS ASSIGNMENT;  
+
+CREATE OR REPLACE FUNCTION public.pgdms_didn(
+	a text)
+    RETURNS pgdms_didn
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE
+  ret pgdms_didn;
+BEGIN
+  ret.key = substring(a,1,36)::uuid;
+  RETURN ret;
+END;
+$BODY$;  
+  
+CREATE CAST (text AS pgdms_didn)
+	WITH FUNCTION public.pgdms_didn(text)
+	AS ASSIGNMENT;  
+
+
+
+
+
+
 CREATE OR REPLACE FUNCTION public.pgdms_uuid( 
   a pgdms_did) 
     RETURNS uuid 
