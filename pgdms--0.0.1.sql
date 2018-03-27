@@ -673,6 +673,55 @@ BEGIN
 END;
 $BODY$;
 
+CREATE OR REPLACE FUNCTION public.pgdms_change_status(
+	entity text,
+	did pgdms_did,
+	status pgdms_status)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF (did.status = 'work'::pgdms_status) THEN
+    IF (status = 'work'::pgdms_status) THEN
+      RETURN TRUE;
+    END IF;
+    IF (status = 'progect'::pgdms_status OR status = 'document'::pgdms_status) THEN
+      PERFORM pgdms_set_hash(entity, did);
+    END IF;
+    IF (status = 'document'::pgdms_status) THEN
+      RETURN pgdms_setstatus_document(entity, did);
+    END IF;
+  END IF;
+  IF (did.status = 'progect'::pgdms_status) THEN
+    IF (status = 'work'::pgdms_status) THEN
+      RETURN FALSE;
+    END IF;
+    IF (status = 'progect'::pgdms_status) THEN
+      RETURN TRUE;
+    END IF;
+    IF (status = 'document'::pgdms_status) THEN
+      RETURN pgdms_setstatus_document(entity, did);
+    END IF;
+  END IF;
+  IF (did.status = 'document'::pgdms_status) THEN
+    IF (status = 'work'::pgdms_status) THEN
+      RETURN FALSE;
+    END IF;
+    IF (status = 'progect'::pgdms_status) THEN
+      RETURN FALSE;
+    END IF;
+    IF (status = 'document'::pgdms_status) THEN
+      RETURN TRUE;
+    END IF;
+  END IF;
+  EXECUTE 'UPDATE ' || entity || '
+	SET ' || pgdms_get_pk(entity) || '.status = ''' || status || ''' 
+	WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||did.key||'''::uuid';
+  RETURN TRUE;
+END;
+$BODY$;
 
 
 CREATE OR REPLACE FUNCTION public.pgdms_set_action(
@@ -718,6 +767,58 @@ END;
 $BODY$;
 
 
+
+CREATE OR REPLACE FUNCTION public.pgdms_get_did(
+	entity text,
+	k text)
+    RETURNS pgdms_did
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE
+  did pgdms_did;
+BEGIN
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').key FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.key;
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').family FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.family;
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').status FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.status;
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').created FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.created;
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').hash FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.hash;
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').valid_from FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.valid_from;
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').valid_until FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.valid_until;
+  EXECUTE 'SELECT ('||pgdms_get_pk(entity)|| ').ac FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' 
+    INTO did.ac;  
+   RETURN did;
+END;
+$BODY$;
+
+
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_set_action(
+	entity text,
+	k text,
+	action pgdms_actiontype,
+	note text)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  RETURN public.pgdms_set_action(entity,pgdms_get_did(entity,k),action,note);
+END;
+$BODY$;
+
+
+
 CREATE OR REPLACE FUNCTION public.pgdms_get_actions(
 	a pgdms_did)
     RETURNS text
@@ -729,6 +830,27 @@ BEGIN
   RETURN pgdms_to_text((a).ac);
 END;
 $BODY$;  
+
+
+/*
+CREATE OR REPLACE FUNCTION public.pgdms_get_actions(
+	entity text,
+	k text;
+	)
+    RETURNS text
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+DECLARE 
+  a pgdms_did;
+BEGIN
+  EXECUTE 'SELECT '||pgdms_get_pk(entity)|| ' FROM ' || entity  || ' WHERE (' || entity || '.' || pgdms_get_pk(entity) || ').key = '''||substring(k,1,36)||'''::uuid' INTO a;
+  RETURN pgdms_to_text((a).ac);
+END;
+$BODY$;  
+
+*/
   
 CREATE OR REPLACE FUNCTION public.pgdms_get_status(
 	a pgdms_did)
