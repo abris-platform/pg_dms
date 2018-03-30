@@ -204,6 +204,14 @@ SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_family(key, (select key 
    3 | Документ
 (3 rows)
 
+SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_family(key, (select key::text from d where num = 1));	
+ num | pgdms_get_status 
+-----+------------------
+   1 | Материал
+   2 | Архив
+   3 | Документ
+(3 rows)
+
 --Вывод последных записей
 SELECT num FROM d WHERE pgdms_is_last('public.d', key);
  num 

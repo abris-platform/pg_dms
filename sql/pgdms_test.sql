@@ -157,6 +157,10 @@ SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_document(key);
 
 --Вывод записей одного семейства
 SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_family(key, (select key from d where num = 1));	
+
+SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_family(key, (select key::text from d where num = 1));	
+
+
 --Вывод последных записей
 SELECT num FROM d WHERE pgdms_is_last('public.d', key);
 

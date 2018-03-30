@@ -269,6 +269,33 @@ CREATE OPERATOR pg_catalog.=(
   NEGATOR = <>,
   HASHES,
   MERGES);
+  
+  
+  
+CREATE OR REPLACE FUNCTION public.pgdms_did_uuid_eq(a pgdms_did, b uuid)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF(a.key = b) THEN RETURN true;
+  ELSE RETURN false;
+  END IF;
+END;
+$BODY$;
+
+CREATE OPERATOR pg_catalog.=(
+  PROCEDURE = pgdms_did_uuid_eq,
+  LEFTARG = pgdms_did,
+  RIGHTARG = uuid,
+  COMMUTATOR = =,
+  NEGATOR = <>,
+  HASHES,
+  MERGES);
+  
+  
+  
 
 CREATE OR REPLACE FUNCTION public.pgdms_didn_text_eq(a pgdms_didn, b text)
     RETURNS boolean
@@ -921,6 +948,24 @@ CREATE OR REPLACE FUNCTION public.pgdms_is_family(
 AS $BODY$
 BEGIN
   IF ((a).family = f.family) THEN
+    RETURN TRUE;
+  ELSE
+    RETURN FALSE;
+  END IF;
+END;
+$BODY$;  
+
+
+CREATE OR REPLACE FUNCTION public.pgdms_is_family(
+	a pgdms_did,
+	f text)
+    RETURNS boolean
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE 
+AS $BODY$
+BEGIN
+  IF ((a).family = substring(f,1,36)::uuid) THEN
     RETURN TRUE;
   ELSE
     RETURN FALSE;
