@@ -1,22 +1,16 @@
 sudo: required
 
 services:
-- docker
+  - postgresql
+    
+env:
+  global:
+  - PGPORT=5433
 
-arch:
-  repos:
-  - papyros=http://dash.papyros.io/repos/$repo/$arch
-  packages:
-  # pacman packages
-  - python
-  - perl
-  # aur packages
-  - go-git
-  # packages from papyros repo
-  - papyros-shell
-  script:
-  - "./build_script.sh"
-
+before_script:
+  - sudo apt-get install postgresql-server-dev-all
+  - sudo apt-get install postgresql-common
+  - sudo /etc/init.d/postgresql restart
+  
 script:
-- "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
-
+ - sudo make install
