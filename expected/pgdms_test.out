@@ -19,7 +19,7 @@ CREATE SEQUENCE public.dup_key_seq
   CACHE 1;
 CREATE TABLE public.dup (
   KEY integer NOT NULL DEFAULT nextval('dup_key_seq'::regclass),
-  d pgdms_didup,
+  d pgdms_family_ref,
   name text COLLATE pg_catalog. "default",
   CONSTRAINT dup_pkey PRIMARY KEY (KEY),
   CONSTRAINT dup_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON
@@ -34,7 +34,7 @@ CREATE SEQUENCE public.dn_key_seq
   CACHE 1;
 CREATE TABLE public.dn (
   KEY integer NOT NULL DEFAULT nextval('dn_key_seq'::regclass),
-  d pgdms_didn,
+  d pgdms_ref,
   name text COLLATE pg_catalog. "default",
   CONSTRAINT dn_pkey PRIMARY KEY (KEY),
   CONSTRAINT dn_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON

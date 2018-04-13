@@ -80,10 +80,10 @@ $BODY$;
 * TYPE pgdms_action
 */
 CREATE TYPE public.pgdms_action AS (
-  dt timestamp WITH time zone,
+  created timestamp WITH time zone,
   usr text,
   act pgdms_actiontype,
-  nt text
+  note text
 );
 
 COMMENT ON TYPE public.pgdms_actiontype IS 'Действиe которые совершено с документом (строкой)';
@@ -92,7 +92,7 @@ COMMENT ON TYPE public.pgdms_actiontype IS 'Действиe которые со�
 * TYPE pgdms_status
 */
 CREATE TYPE public.pgdms_status AS ENUM ( 'work',
-  'progect',
+  'project',
   'document',
   'archival'
 );
@@ -110,7 +110,7 @@ BEGIN
   IF (a = 'work'::pgdms_status) THEN
     RETURN 'Материал';
   END IF;
-  IF (a = 'progect'::pgdms_status) THEN
+  IF (a = 'project'::pgdms_status) THEN
     RETURN 'Проект';
   END IF;
   IF (a = 'document'::pgdms_status) THEN
@@ -130,7 +130,7 @@ CREATE OR REPLACE FUNCTION public.pgdms_to_text (a timestamp WITH time zone)
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
 BEGIN
-  RETURN to_char(a, 'DD.MM.YY HH12:MI');
+  RETURN to_char(a, 'DD.MM.YY HH24:MI');
 END;
 $BODY$;
 
@@ -142,7 +142,7 @@ CREATE OR REPLACE FUNCTION public.pgdms_to_text (a pgdms_action)
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
 BEGIN
-  RETURN pgdms_to_text ((a).dt) || ' ' || pgdms_to_text ((a).act) || ' ' || (a).usr || COALESCE(' (' || (a).nt || ')',
+  RETURN pgdms_to_text ((a).created) || ' ' || pgdms_to_text ((a).act) || ' ' || (a).usr || COALESCE(' (' || (a).note || ')',
     '');
 END;
 $BODY$;
@@ -179,7 +179,7 @@ $BODY$;
 */
 CREATE TYPE public.pgdms_did AS (
   family uuid,
-  KEY uuid,
+  key uuid,
   status pgdms_status,
   created timestamp WITH time zone,
   hash uuid,
@@ -189,23 +189,23 @@ CREATE TYPE public.pgdms_did AS (
 );
 COMMENT ON TYPE public.pgdms_actiontype IS 'Тип ключевого поля для документа (строки) в котором храниться вся информация и состоянии и действиях со строкой';
 /*
-* TYPE pgdms_didup
+* TYPE pgdms_family_ref
 */
-CREATE TYPE public.pgdms_didup AS (
-  KEY uuid
+CREATE TYPE public.pgdms_family_ref AS (
+  key uuid
 );
 COMMENT ON TYPE public.pgdms_actiontype IS 'Тип поля зависимой таблицы котороый ссылается на таблицу с докуентами и зависит от изменений документа';
 /*
-* TYPE pgdms_didn
+* TYPE pgdms_ref
 */
-CREATE TYPE public.pgdms_didn AS (
-  KEY uuid
+CREATE TYPE public.pgdms_ref AS (
+  key uuid
 );
 COMMENT ON TYPE public.pgdms_actiontype IS 'Тип поля зависимой таблицы котороый ссылается на таблицу с докуентами и не зависит от изменений документа';
 /*
-* FUNCTION OPERATOR pgdms_did_pgdms_didup_eq (a pgdms_did, b pgdms_didup)
+* FUNCTION OPERATOR pgdms_did_pgdms_didup_eq (a pgdms_did, b pgdms_family_ref)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_didup_eq (a pgdms_did, b pgdms_didup)
+CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_didup_eq (a pgdms_did, b pgdms_family_ref)
   RETURNS boolean
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -218,14 +218,14 @@ BEGIN
 END;
 $BODY$;
 /*
-* OPERATOR pgdms_did = pgdms_didup
+* OPERATOR pgdms_did = pgdms_family_ref
 */
 CREATE OPERATOR pg_catalog. = (
-PROCEDURE = pgdms_did_pgdms_didup_eq, LEFTARG = pgdms_did, RIGHTARG = pgdms_didup, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+PROCEDURE = pgdms_did_pgdms_didup_eq, LEFTARG = pgdms_did, RIGHTARG = pgdms_family_ref, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
 /*
-* FUNCTION OPERATOR pgdms_did_pgdms_didn_eq (a pgdms_did, b pgdms_didn)
+* FUNCTION OPERATOR pgdms_did_pgdms_didn_eq (a pgdms_did, b pgdms_ref)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_didn_eq (a pgdms_did, b pgdms_didn)
+CREATE OR REPLACE FUNCTION public.pgdms_did_pgdms_didn_eq (a pgdms_did, b pgdms_ref)
   RETURNS boolean
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -238,14 +238,14 @@ BEGIN
 END;
 $BODY$;
 /*
-* OPERATOR pgdms_did = pgdms_didn
+* OPERATOR pgdms_did = pgdms_ref
 */
 CREATE OPERATOR pg_catalog. = (
-PROCEDURE = pgdms_did_pgdms_didn_eq, LEFTARG = pgdms_did, RIGHTARG = pgdms_didn, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+PROCEDURE = pgdms_did_pgdms_didn_eq, LEFTARG = pgdms_did, RIGHTARG = pgdms_ref, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
 /*
-* FUNCTION OPERATOR pgdms_didup_pgdms_did_eq (b pgdms_didup, a pgdms_did)
+* FUNCTION OPERATOR pgdms_didup_pgdms_did_eq (b pgdms_family_ref, a pgdms_did)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didup_pgdms_did_eq (b pgdms_didup, a pgdms_did)
+CREATE OR REPLACE FUNCTION public.pgdms_didup_pgdms_did_eq (b pgdms_family_ref, a pgdms_did)
   RETURNS boolean
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -258,14 +258,14 @@ BEGIN
 END;
 $BODY$;
 /*
-* OPERATOR pgdms_didup = pgdms_did
+* OPERATOR pgdms_family_ref = pgdms_did
 */
 CREATE OPERATOR pg_catalog. = (
-PROCEDURE = pgdms_didup_pgdms_did_eq, LEFTARG = pgdms_didup, RIGHTARG = pgdms_did, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+PROCEDURE = pgdms_didup_pgdms_did_eq, LEFTARG = pgdms_family_ref, RIGHTARG = pgdms_did, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
 /*
 * FUNCTION OPERATOR 
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didn_pgdms_did_eq (b pgdms_didn, a pgdms_did)
+CREATE OR REPLACE FUNCTION public.pgdms_didn_pgdms_did_eq (b pgdms_ref, a pgdms_did)
   RETURNS boolean
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -278,14 +278,14 @@ BEGIN
 END;
 $BODY$;
 /*
-* OPERATOR pgdms_didn = pgdms_did
+* OPERATOR pgdms_ref = pgdms_did
 */
 CREATE OPERATOR pg_catalog. = (
-PROCEDURE = pgdms_didn_pgdms_did_eq, LEFTARG = pgdms_didn, RIGHTARG = pgdms_did, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+PROCEDURE = pgdms_didn_pgdms_did_eq, LEFTARG = pgdms_ref, RIGHTARG = pgdms_did, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
 /*
-* FUNCTION OPERATOR pgdms_didup_text_eq (a pgdms_didup, b text)
+* FUNCTION OPERATOR pgdms_didup_text_eq (a pgdms_family_ref, b text)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didup_text_eq (a pgdms_didup, b text)
+CREATE OR REPLACE FUNCTION public.pgdms_didup_text_eq (a pgdms_family_ref, b text)
   RETURNS boolean
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -298,10 +298,10 @@ BEGIN
 END;
 $BODY$;
 /*
-* OPERATOR pgdms_didup = text
+* OPERATOR pgdms_family_ref = text
 */
 CREATE OPERATOR pg_catalog. = (
-PROCEDURE = pgdms_didup_text_eq, LEFTARG = pgdms_didup, RIGHTARG = text, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+PROCEDURE = pgdms_didup_text_eq, LEFTARG = pgdms_family_ref, RIGHTARG = text, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
 /*
 * FUNCTION OPERATOR pgdms_did_uuid_eq (a pgdms_did, b uuid)
 */
@@ -322,10 +322,11 @@ $BODY$;
 */
 CREATE OPERATOR pg_catalog. = (
 PROCEDURE = pgdms_did_uuid_eq, LEFTARG = pgdms_did, RIGHTARG = uuid, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+
 /*
-* FUNCTION OPERATOR pgdms_didn_text_eq (a pgdms_didn, b text)
+* FUNCTION OPERATOR pgdms_didn_text_eq (a pgdms_ref, b text)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didn_text_eq (a pgdms_didn, b text)
+CREATE OR REPLACE FUNCTION public.pgdms_didn_text_eq (a pgdms_ref, b text)
   RETURNS boolean
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -338,10 +339,10 @@ BEGIN
 END;
 $BODY$;
 /*
-* OPERATOR pgdms_didn = text
+* OPERATOR pgdms_ref = text
 */
 CREATE OPERATOR pg_catalog. = (
-PROCEDURE = pgdms_didn_text_eq, LEFTARG = pgdms_didn, RIGHTARG = text, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+PROCEDURE = pgdms_didn_text_eq, LEFTARG = pgdms_ref, RIGHTARG = text, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
 /*
 * FUNCTION OPERATOR pgdms_did_pgdms_did_eq (a pgdms_did, b pgdms_did)
 */
@@ -418,14 +419,35 @@ WITH FUNCTION public.pgdms_did (uuid) AS
 ASSIGNMENT;
 
 /*
-* FUNCTION CAST pgdms_didup (a uuid) 
+* FUNCTION CAST pgdms_did (a text)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didup (a uuid)
-  RETURNS pgdms_didup
+CREATE OR REPLACE FUNCTION public.pgdms_did (a text)
+  RETURNS pgdms_did
+  LANGUAGE 'plpgsql' COST 100 VOLATILE
+AS $BODY$
+BEGIN
+  return public.pgdms_did((public.pgdms_family_ref(a)).key);
+END;
+$BODY$;
+/*
+* CAST text => pgdms_did
+*/
+CREATE CAST(
+  text
+AS pgdms_did)
+WITH FUNCTION public.pgdms_did (text) AS
+ASSIGNMENT;
+
+
+/*
+* FUNCTION CAST pgdms_family_ref (a uuid) 
+*/
+CREATE OR REPLACE FUNCTION public.pgdms_family_ref (a uuid)
+  RETURNS pgdms_family_ref
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
 DECLARE
-  ret pgdms_didup;
+  ret pgdms_family_ref;
 BEGIN
   ret.key = a;
   RETURN ret;
@@ -433,78 +455,108 @@ END;
 $BODY$;
 
 /*
-* CAST uuid =>  pgdms_didup
+* CAST uuid =>  pgdms_family_ref
 */
 CREATE CAST(
   uuid
-AS pgdms_didup)
-WITH FUNCTION public.pgdms_didup (uuid) AS ASSIGNMENT;
+AS pgdms_family_ref)
+WITH FUNCTION public.pgdms_family_ref (uuid) AS ASSIGNMENT;
 /*
-* FUNCTION CAST pgdms_didn (a uuid) 
+* FUNCTION CAST pgdms_ref (a uuid) 
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didn (a uuid)
-  RETURNS pgdms_didn
+CREATE OR REPLACE FUNCTION public.pgdms_ref (a uuid)
+  RETURNS pgdms_ref
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
 DECLARE
-  ret pgdms_didn;
+  ret pgdms_ref;
 BEGIN
   ret.key = a;
   RETURN ret;
 END;
 $BODY$;
 /*
-* CAST uuid => pgdms_didn
+* CAST uuid => pgdms_ref
 */
 CREATE CAST(
   uuid
-AS pgdms_didn)
-WITH FUNCTION public.pgdms_didn (uuid) AS
+AS pgdms_ref)
+WITH FUNCTION public.pgdms_ref (uuid) AS
 ASSIGNMENT;
 
 /*
-* FUNCTION CAST pgdms_didup (a text)
+* FUNCTION CAST pgdms_family_ref (a text)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didup (a text)
-  RETURNS pgdms_didup
+CREATE OR REPLACE FUNCTION public.pgdms_family_ref (a text)
+  RETURNS pgdms_family_ref
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
 DECLARE
-  ret pgdms_didup;
+  ret pgdms_family_ref;
 BEGIN
   ret.key = substring(a, 38, 70)::uuid;
   RETURN ret;
 END;
 $BODY$;
-
 /*
-* CAST text => pgdms_didup  
+* FUNCTION OPERATOR pgdms_did_text_eq (a pgdms_did, b text)
+*/
+CREATE OR REPLACE FUNCTION public.pgdms_did_text_eq (a pgdms_did, b text)
+  RETURNS boolean
+  LANGUAGE 'plpgsql' COST 100 VOLATILE
+AS $BODY$
+declare
+  key text;
+BEGIN
+  key := substring(b, 1, 36);
+  if length(b) > 40 then
+	  IF (a.key = key::uuid) THEN
+	    RETURN TRUE;
+	  ELSE
+	    RETURN FALSE;
+	  END IF;
+  else
+  	  IF (a.family = key::uuid) THEN
+	    RETURN TRUE;
+	  ELSE
+	    RETURN FALSE;
+	  END IF;
+  end if;
+END;
+$BODY$;
+/*
+* OPERATOR pgdms_did = text
+*/
+CREATE OPERATOR pg_catalog. = (
+PROCEDURE = pgdms_did_text_eq, LEFTARG = pgdms_did, RIGHTARG = text, COMMUTATOR = =, NEGATOR = <>, HASHES, MERGES);
+/*
+* CAST text => pgdms_family_ref  
 */
 CREATE CAST(
   text
-AS pgdms_didup)
-WITH FUNCTION public.pgdms_didup (text) AS ASSIGNMENT;
+AS pgdms_family_ref)
+WITH FUNCTION public.pgdms_family_ref (text) AS ASSIGNMENT;
 /*
-* FUNCTION CAST pgdms_didn (a text)
+* FUNCTION CAST pgdms_ref (a text)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_didn (a text)
-  RETURNS pgdms_didn
+CREATE OR REPLACE FUNCTION public.pgdms_ref (a text)
+  RETURNS pgdms_ref
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
 DECLARE
-  ret pgdms_didn;
+  ret pgdms_ref;
 BEGIN
   ret.key = substring(a, 1, 36)::uuid;
   RETURN ret;
 END;
 $BODY$;
 /*
-* CAST text => pgdms_didn  
+* CAST text => pgdms_ref  
 */
 CREATE CAST(
   text
-AS pgdms_didn)
-WITH FUNCTION public.pgdms_didn (text) AS
+AS pgdms_ref)
+WITH FUNCTION public.pgdms_ref (text) AS
 ASSIGNMENT;
 
 /*
@@ -527,9 +579,9 @@ CREATE CAST(
 AS uuid)
 WITH FUNCTION public.pgdms_uuid (pgdms_did) AS ASSIGNMENT;
 /*
-* FUNCTION CAST pgdms_uuid (a pgdms_didup)
+* FUNCTION CAST pgdms_uuid (a pgdms_family_ref)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_uuid (a pgdms_didup)
+CREATE OR REPLACE FUNCTION public.pgdms_uuid (a pgdms_family_ref)
   RETURNS uuid
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -538,17 +590,17 @@ BEGIN
 END;
 $BODY$;
 /*
-* CAST pgdms_didup => uuid 
+* CAST pgdms_family_ref => uuid 
 */
 CREATE CAST(
-  pgdms_didup
+  pgdms_family_ref
 AS uuid)
-WITH FUNCTION public.pgdms_uuid (pgdms_didup) AS
+WITH FUNCTION public.pgdms_uuid (pgdms_family_ref) AS
 ASSIGNMENT;
 /*
-* FUNCTION CAST pgdms_text (a pgdms_didup)
+* FUNCTION CAST pgdms_text (a pgdms_family_ref)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_text (a pgdms_didup)
+CREATE OR REPLACE FUNCTION public.pgdms_text (a pgdms_family_ref)
   RETURNS text
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -558,16 +610,16 @@ END;
 $BODY$;
 
 /*
-* CAST pgdms_didup => text  
+* CAST pgdms_family_ref => text  
 */
 CREATE CAST(
-  pgdms_didup
+  pgdms_family_ref
 AS text)
-WITH FUNCTION public.pgdms_text (pgdms_didup) AS ASSIGNMENT;
+WITH FUNCTION public.pgdms_text (pgdms_family_ref) AS ASSIGNMENT;
 /*
-* FUNCTION CAST pgdms_text (a pgdms_didn)
+* FUNCTION CAST pgdms_text (a pgdms_ref)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_text (a pgdms_didn)
+CREATE OR REPLACE FUNCTION public.pgdms_text (a pgdms_ref)
   RETURNS text
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -576,12 +628,12 @@ BEGIN
 END;
 $BODY$;
 /*
-* CAST pgdms_didn => text  
+* CAST pgdms_ref => text  
 */
 CREATE CAST(
-  pgdms_didn
+  pgdms_ref
 AS text)
-WITH FUNCTION public.pgdms_text (pgdms_didn) AS
+WITH FUNCTION public.pgdms_text (pgdms_ref) AS
 ASSIGNMENT;
 
 /*
@@ -609,9 +661,9 @@ CREATE CAST(
 AS text)
 WITH FUNCTION public.pgdms_text (pgdms_did) AS ASSIGNMENT;
 /*
-* FUNCTION CAST pgdms_uuid (a pgdms_didn)
+* FUNCTION CAST pgdms_uuid (a pgdms_ref)
 */
-CREATE OR REPLACE FUNCTION public.pgdms_uuid (a pgdms_didn)
+CREATE OR REPLACE FUNCTION public.pgdms_uuid (a pgdms_ref)
   RETURNS uuid
   LANGUAGE 'plpgsql' COST 100 VOLATILE
 AS $BODY$
@@ -620,12 +672,12 @@ BEGIN
 END;
 $BODY$;
 /*
-* CAST pgdms_didn => uuid 
+* CAST pgdms_ref => uuid 
 */
 CREATE CAST(
-  pgdms_didn
+  pgdms_ref
 AS uuid)
-WITH FUNCTION public.pgdms_uuid (pgdms_didn) AS
+WITH FUNCTION public.pgdms_uuid (pgdms_ref) AS
 ASSIGNMENT;
 
 /*
@@ -687,7 +739,7 @@ BEGIN
     IF (status = 'work'::pgdms_status) THEN
       RETURN TRUE;
     END IF;
-    IF (status = 'progect'::pgdms_status OR status = 'document'::pgdms_status) THEN
+    IF (status = 'project'::pgdms_status OR status = 'document'::pgdms_status) THEN
       PERFORM
         pgdms_set_hash (entity,
           did);
@@ -697,11 +749,11 @@ BEGIN
         did);
     END IF;
   END IF;
-  IF (did.status = 'progect'::pgdms_status) THEN
+  IF (did.status = 'project'::pgdms_status) THEN
     IF (status = 'work'::pgdms_status) THEN
       RETURN FALSE;
     END IF;
-    IF (status = 'progect'::pgdms_status) THEN
+    IF (status = 'project'::pgdms_status) THEN
       RETURN TRUE;
     END IF;
     IF (status = 'document'::pgdms_status) THEN
@@ -713,7 +765,7 @@ BEGIN
     IF (status = 'work'::pgdms_status) THEN
       RETURN FALSE;
     END IF;
-    IF (status = 'progect'::pgdms_status) THEN
+    IF (status = 'project'::pgdms_status) THEN
       RETURN FALSE;
     END IF;
     IF (status = 'document'::pgdms_status) THEN
@@ -739,7 +791,7 @@ BEGIN
     IF (status = 'work'::pgdms_status) THEN
       RETURN TRUE;
     END IF;
-    IF (status = 'progect'::pgdms_status OR status = 'document'::pgdms_status) THEN
+    IF (status = 'project'::pgdms_status OR status = 'document'::pgdms_status) THEN
       PERFORM
         pgdms_set_hash (entity,
           did);
@@ -749,11 +801,11 @@ BEGIN
         did);
     END IF;
   END IF;
-  IF (did.status = 'progect'::pgdms_status) THEN
+  IF (did.status = 'project'::pgdms_status) THEN
     IF (status = 'work'::pgdms_status) THEN
       RETURN FALSE;
     END IF;
-    IF (status = 'progect'::pgdms_status) THEN
+    IF (status = 'project'::pgdms_status) THEN
       RETURN TRUE;
     END IF;
     IF (status = 'document'::pgdms_status) THEN
@@ -765,7 +817,7 @@ BEGIN
     IF (status = 'work'::pgdms_status) THEN
       RETURN FALSE;
     END IF;
-    IF (status = 'progect'::pgdms_status) THEN
+    IF (status = 'project'::pgdms_status) THEN
       RETURN FALSE;
     END IF;
     IF (status = 'document'::pgdms_status) THEN
@@ -802,12 +854,12 @@ BEGIN
     IF (did.status = 'work'::pgdms_status) THEN
       f = pgdms_change_status (entity,
         did,
-        'progect'::pgdms_status);
+        'project'::pgdms_status);
     END IF;
     RETURN TRUE;
   END IF;
   IF (action = 'approved'::pgdms_actiontype) THEN
-    IF (did.status = 'progect'::pgdms_status) THEN
+    IF (did.status = 'project'::pgdms_status) THEN
       f = pgdms_change_status (entity,
         did,
         'document'::pgdms_status);
@@ -968,7 +1020,7 @@ DECLARE
 BEGIN
   EXECUTE 'SELECT (' || entity || '.' || pgdms_get_pk (entity) || ').key 
                     from ' || entity || ' where (' || entity || '.' || pgdms_get_pk (entity) || ').family = ''' || (a).family || ''' order by (' || entity || '.' || pgdms_get_pk (entity) || ').family desc limit 1' INTO f;
-  IF ((a).KEY = f) THEN
+  IF ((a).key = f) THEN
     RETURN TRUE;
   ELSE
     RETURN FALSE;
