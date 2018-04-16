@@ -1,5 +1,6 @@
 CREATE EXTENSION pgdms CASCADE;
 NOTICE:  installing required extension "uuid-ossp"
+CREATE EXTENSION pgabris CASCADE;
 SELECT
   hello ();
      hello     
