@@ -1211,7 +1211,7 @@ ALTER TABLE ONLY dvd.products
     ADD CONSTRAINT products_category_fkey FOREIGN KEY (category) REFERENCES dvd.categories(category);
 
 	
-	
+set search_path = meta;	
 	
 INSERT INTO entity_extra VALUES ('Категории', 'category', NULL, 'dvd.categories', 'dvd.categories', NULL);
 INSERT INTO entity_extra VALUES ('Заказы', 'orderid', NULL, 'dvd.orders', 'dvd.orders', NULL);

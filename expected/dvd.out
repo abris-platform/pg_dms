@@ -1169,558 +1169,144 @@ ALTER TABLE ONLY dvd.inventory
 ALTER TABLE ONLY dvd.products
     ADD CONSTRAINT products_category_fkey FOREIGN KEY (category) REFERENCES dvd.categories(category);
 	
-	
+set search_path = meta;	
 	
 INSERT INTO entity_extra VALUES ('Категории', 'category', NULL, 'dvd.categories', 'dvd.categories', NULL);
-ERROR:  relation "entity_extra" does not exist
-LINE 1: INSERT INTO entity_extra VALUES ('Категории', 'category', NU...
-                    ^
 INSERT INTO entity_extra VALUES ('Заказы', 'orderid', NULL, 'dvd.orders', 'dvd.orders', NULL);
-ERROR:  relation "entity_extra" does not exist
-LINE 1: INSERT INTO entity_extra VALUES ('Заказы', 'orderid', NULL, ...
-                    ^
 INSERT INTO entity_extra VALUES ('Клиенты', 'customerid', 0, 'dvd.customers', 'dvd.customers', NULL);
-ERROR:  relation "entity_extra" does not exist
-LINE 1: INSERT INTO entity_extra VALUES ('Клиенты', 'customerid', 0,...
-                    ^
 INSERT INTO entity_extra VALUES ('Склад', 'prod_id', 0, 'dvd.inventory', 'dvd.inventory', NULL);
-ERROR:  relation "entity_extra" does not exist
-LINE 1: INSERT INTO entity_extra VALUES ('Склад', 'prod_id', 0, 'dvd...
-                    ^
 INSERT INTO entity_extra VALUES ('Корзина заказа', 'orderlinekey', 0, 'dvd.orderlines', 'dvd.orderlines', NULL);
-ERROR:  relation "entity_extra" does not exist
-LINE 1: INSERT INTO entity_extra VALUES ('Корзина заказа', 'orderlin...
-                    ^
 INSERT INTO entity_extra VALUES ('Товары', 'key', 1, 'dvd.products', 'dvd.products', NULL);
-ERROR:  relation "entity_extra" does not exist
-LINE 1: INSERT INTO entity_extra VALUES ('Товары', 'key', 1, 'dvd.pr...
-                    ^
 INSERT INTO menu_item VALUES ('categories', 'Категории', 'shop', 'categories', 'list', NULL, 1, NULL, NULL, NULL);
-ERROR:  relation "menu_item" does not exist
-LINE 1: INSERT INTO menu_item VALUES ('categories', 'Категории', 'sh...
-                    ^
 INSERT INTO menu_item VALUES ('clients', 'Клиенты', 'shop', 'customers', 'list', NULL, 2, NULL, NULL, NULL);
-ERROR:  relation "menu_item" does not exist
-LINE 1: INSERT INTO menu_item VALUES ('clients', 'Клиенты', 'shop', ...
-                    ^
 INSERT INTO menu_item VALUES ('orders', 'Заказы', 'shop', 'orders', 'list', NULL, 6, NULL, NULL, NULL);
-ERROR:  relation "menu_item" does not exist
-LINE 1: INSERT INTO menu_item VALUES ('orders', 'Заказы', 'shop', 'o...
-                    ^
 INSERT INTO menu_item VALUES ('customers-home', 'Клиенты', 'home', 'customers', 'list', NULL, 0, NULL, 'narrow', NULL);
-ERROR:  relation "menu_item" does not exist
-LINE 1: INSERT INTO menu_item VALUES ('customers-home', 'Клиенты', '...
-                    ^
 INSERT INTO menu_item VALUES ('orders-home', 'Заказы', 'customers-home', 'orders', 'list', NULL, 0, NULL, NULL, NULL);
-ERROR:  relation "menu_item" does not exist
-LINE 1: INSERT INTO menu_item VALUES ('orders-home', 'Заказы', 'cust...
-                    ^
 INSERT INTO menu_item VALUES ('shop', 'Магазин DVD', NULL, NULL, 'list', NULL, 1, 'fa-shopping-cart ', NULL, NULL);
-ERROR:  relation "menu_item" does not exist
-LINE 1: INSERT INTO menu_item VALUES ('shop', 'Магазин DVD', NULL, N...
-                    ^
 INSERT INTO menu_item VALUES ('products', 'Товары', 'shop', 'products', 'pgdmslist', NULL, 5, NULL, NULL, NULL);
-ERROR:  relation "menu_item" does not exist
-LINE 1: INSERT INTO menu_item VALUES ('products', 'Товары', 'shop', ...
-                    ^
 INSERT INTO projection_entity_extra VALUES ('Категории', 'categories', 'categories', NULL, false, 'dvd.categories', NULL);
-ERROR:  relation "projection_entity_extra" does not exist
-LINE 1: INSERT INTO projection_entity_extra VALUES ('Категории', 'ca...
-                    ^
 INSERT INTO projection_entity_extra VALUES ('Клиенты', 'customers_lu', 'customers', NULL, true, 'dvd.customers', NULL);
-ERROR:  relation "projection_entity_extra" does not exist
-LINE 1: INSERT INTO projection_entity_extra VALUES ('Клиенты', 'cust...
-                    ^
 INSERT INTO projection_entity_extra VALUES ('Товары', 'products', 'products', NULL, false, 'dvd.products', NULL);
-ERROR:  relation "projection_entity_extra" does not exist
-LINE 1: INSERT INTO projection_entity_extra VALUES ('Товары', 'produ...
-                    ^
 INSERT INTO projection_entity_extra VALUES ('Заказы', 'orders', 'orders', NULL, false, 'dvd.orders', NULL);
-ERROR:  relation "projection_entity_extra" does not exist
-LINE 1: INSERT INTO projection_entity_extra VALUES ('Заказы', 'order...
-                    ^
 INSERT INTO projection_entity_extra VALUES ('Клиенты', 'customers', 'customers_edit', NULL, false, 'dvd.customers', '"Клиенты"');
-ERROR:  relation "projection_entity_extra" does not exist
-LINE 1: INSERT INTO projection_entity_extra VALUES ('Клиенты', 'cust...
-                    ^
 INSERT INTO projection_entity_extra VALUES ('Склад', 'inventory', 'inventory', NULL, false, 'dvd.inventory', NULL);
-ERROR:  relation "projection_entity_extra" does not exist
-LINE 1: INSERT INTO projection_entity_extra VALUES ('Склад', 'invent...
-                    ^
 INSERT INTO projection_entity_extra VALUES ('Корзина заказа', 'orderlines', 'orderlines', NULL, false, 'dvd.orderlines', NULL);
-ERROR:  relation "projection_entity_extra" does not exist
-LINE 1: INSERT INTO projection_entity_extra VALUES ('Корзина заказа'...
-                    ^
 INSERT INTO projection_property_extra VALUES ('category', 'Категория', 'ref', false, true, 'products', 'categories', 3, false, 'products.category', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('category', 'К...
-                    ^
 INSERT INTO projection_property_extra VALUES ('address1', 'Адрес', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.address1', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('address1', 'А...
-                    ^
 INSERT INTO projection_property_extra VALUES ('address2', 'Другой адрес', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.address2', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('address2', 'Д...
-                    ^
 INSERT INTO projection_property_extra VALUES ('age', 'Возраст', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.age', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('age', 'Возрас...
-                    ^
 INSERT INTO projection_property_extra VALUES ('city', 'Город', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.city', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('city', 'Город...
-                    ^
 INSERT INTO projection_property_extra VALUES ('country', 'Страна', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.country', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('country', 'Ст...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcard', 'Номер карты', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.creditcard', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcard', ...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcardexpiration', 'Срок действия карты', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.creditcardexpiration', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcardexp...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcardtype', 'Тип карты', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.creditcardtype', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcardtyp...
-                    ^
 INSERT INTO projection_property_extra VALUES ('email', 'Электронная почта', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.email', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('email', 'Элек...
-                    ^
 INSERT INTO projection_property_extra VALUES ('gender', 'Пол', 'string', NULL, false, 'customers_lu', NULL, NULL, NULL, 'customers_lu.gender', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('gender', 'Пол...
-                    ^
 INSERT INTO projection_property_extra VALUES ('lastname', 'Фамилия', 'string', NULL, true, 'customers_lu', NULL, 20, NULL, 'customers_lu.lastname', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('lastname', 'Ф...
-                    ^
 INSERT INTO projection_property_extra VALUES ('firstname', 'Имя', 'string', NULL, true, 'customers_lu', NULL, 10, NULL, 'customers_lu.firstname', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('firstname', '...
-                    ^
 INSERT INTO projection_property_extra VALUES ('special', 'Особый', 'bool', false, true, 'products', NULL, 999, false, 'products.special', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('special', 'Ос...
-                    ^
 INSERT INTO projection_property_extra VALUES ('title', 'Название', 'caption', false, true, 'products', NULL, 1, false, 'products.title', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('title', 'Назв...
-                    ^
 INSERT INTO projection_property_extra VALUES ('price', 'Цена', 'string', false, true, 'products', NULL, 4, false, 'products.price', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('price', 'Цена...
-                    ^
 INSERT INTO projection_property_extra VALUES ('common_prod_id', 'Общий продукт', 'ref', false, false, 'products', 'products', 999, false, 'products.common_prod_id', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('common_prod_i...
-                    ^
 INSERT INTO projection_property_extra VALUES ('comment', 'Комментарий', 'plain', false, true, 'orders', NULL, 1100, false, 'orders.comment', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('comment', 'Ко...
-                    ^
 INSERT INTO projection_property_extra VALUES ('actor', 'Исполнитель главной роли', 'string', false, true, 'products', NULL, 2, false, 'products.actor', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('actor', 'Испо...
-                    ^
 INSERT INTO projection_property_extra VALUES ('email', 'email', 'string', false, true, 'customers_edit', NULL, 16, false, 'customers_edit.email', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('email', 'emai...
-                    ^
 INSERT INTO projection_property_extra VALUES ('country', 'Страна', 'string', false, true, 'customers', NULL, 11, false, 'customers.country', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('country', 'Ст...
-                    ^
 INSERT INTO projection_property_extra VALUES ('customerid', 'customerid', 'string', false, false, 'customers', NULL, 999, false, 'customers.customerid', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('customerid', ...
-                    ^
 INSERT INTO projection_property_extra VALUES ('password', 'Пароль', 'string', false, true, 'customers_edit', NULL, 999, false, 'customers_edit.password', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('password', 'П...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcard', 'Кредитная карта', 'string', false, false, 'customers', NULL, 15, false, 'customers.creditcard', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcard', ...
-                    ^
 INSERT INTO projection_property_extra VALUES ('state', 'state', 'string', false, false, 'customers', NULL, 999, false, 'customers.state', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('state', 'stat...
-                    ^
 INSERT INTO projection_property_extra VALUES ('address2', 'address2', 'string', false, false, 'customers', NULL, 999, false, 'customers.address2', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('address2', 'a...
-                    ^
 INSERT INTO projection_property_extra VALUES ('password', 'Пароль', 'string', false, false, 'customers', NULL, 999, false, 'customers.password', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('password', 'П...
-                    ^
 INSERT INTO projection_property_extra VALUES ('email', 'email', 'string', false, false, 'customers', NULL, 16, false, 'customers.email', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('email', 'emai...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcardtype', 'creditcardtype', 'string', false, false, 'customers', NULL, 999, false, 'customers.creditcardtype', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcardtyp...
-                    ^
 INSERT INTO projection_property_extra VALUES ('username', 'Лoгин', 'string', false, true, 'customers_edit', NULL, 4, false, 'customers_edit.username', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('username', 'Л...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcardexpiration', 'Срок действия карты', 'string', false, true, 'customers_edit', NULL, 9, false, 'customers_edit.creditcardexpiration', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcardexp...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcard', 'Кредитная карта', 'string', false, true, 'customers_edit', NULL, 15, false, 'customers_edit.creditcard', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcard', ...
-                    ^
 INSERT INTO projection_property_extra VALUES ('region', 'Регион', 'string', false, false, 'customers', NULL, 12, false, 'customers.region', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('region', 'Рег...
-                    ^
 INSERT INTO projection_property_extra VALUES ('address1', 'Адрес', 'string', false, false, 'customers', NULL, 3, false, 'customers.address1', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('address1', 'А...
-                    ^
 INSERT INTO projection_property_extra VALUES ('city', 'Город', 'string', false, false, 'customers', NULL, 13, false, 'customers.city', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('city', 'Город...
-                    ^
 INSERT INTO projection_property_extra VALUES ('test', 'test', 'string', false, false, 'orders', NULL, 999, false, 'orders.test', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('test', 'test'...
-                    ^
 INSERT INTO projection_property_extra VALUES ('orderid', 'Номер заказа', 'caption', true, true, 'orders', NULL, 0, false, 'orders.orderid', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('orderid', 'Но...
-                    ^
 INSERT INTO projection_property_extra VALUES ('orderdate', 'Дата заказа', 'date', false, true, 'orders', NULL, 2, false, 'orders.orderdate', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('orderdate', '...
-                    ^
 INSERT INTO projection_property_extra VALUES ('netamount', 'Стоимость', 'money', false, true, 'orders', NULL, 3, false, 'orders.netamount', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('netamount', '...
-                    ^
 INSERT INTO projection_property_extra VALUES ('orderlineid', 'orderlineid', 'string', false, false, 'orderlines', NULL, 999, false, 'orderlines.orderlineid', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('orderlineid',...
-                    ^
 INSERT INTO projection_property_extra VALUES ('totalamount', 'Итого', 'money', false, true, 'orders', NULL, 5, false, 'orders.totalamount', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('totalamount',...
-                    ^
 INSERT INTO projection_property_extra VALUES ('quantity', 'Количество', 'string', false, true, 'orderlines', NULL, 3, false, 'orderlines.quantity', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('quantity', 'К...
-                    ^
 INSERT INTO projection_property_extra VALUES ('orderdate', 'Дата', 'string', false, true, 'orderlines', NULL, 4, false, 'orderlines.orderdate', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('orderdate', '...
-                    ^
 INSERT INTO projection_property_extra VALUES ('sales', 'Продано', 'integer', false, true, 'inventory', NULL, 3, false, 'inventory.sales', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('sales', 'Прод...
-                    ^
 INSERT INTO projection_property_extra VALUES ('quan_in_stock', 'В запасе', 'integer', false, true, 'inventory', NULL, 2, false, 'inventory.quan_in_stock', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('quan_in_stock...
-                    ^
 INSERT INTO projection_property_extra VALUES ('orderlinekey', '№', 'string', false, false, 'orderlines', NULL, 1, false, 'orderlines.orderlinekey', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('orderlinekey'...
-                    ^
 INSERT INTO projection_property_extra VALUES ('orderid', 'Заказ', 'ref', false, true, 'orderlines', 'orders', 1, false, 'orderlines.orderid', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('orderid', 'За...
-                    ^
 INSERT INTO projection_property_extra VALUES ('age', 'Возраст', 'integer', false, true, 'customers_edit', NULL, 5, false, 'customers_edit.age', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('age', 'Возрас...
-                    ^
 INSERT INTO projection_property_extra VALUES ('categoryname', 'Наименование', 'caption', false, true, 'categories', NULL, 999, false, 'categories.categoryname', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('categoryname'...
-                    ^
 INSERT INTO projection_property_extra VALUES ('tax', 'Налог', 'money', false, true, 'orders', NULL, 4, false, 'orders.tax', 'Налог с продаж - оплачивается покупателем и включается в общую стоимость');
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('tax', 'Налог'...
-                    ^
 INSERT INTO projection_property_extra VALUES ('phone', 'Идентификатор', 'string', false, true, 'customers', NULL, 6, false, 'customers.phone', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('phone', 'Иден...
-                    ^
 INSERT INTO projection_property_extra VALUES ('customerid', 'Клиент', 'ref', false, true, 'orders', 'customers', 1, false, 'orders.customerid', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('customerid', ...
-                    ^
 INSERT INTO projection_property_extra VALUES ('creditcardexpiration', 'Срок действия карты', 'datetime', false, false, 'customers', NULL, 9, false, 'customers.creditcardexpiration', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('creditcardexp...
-                    ^
 INSERT INTO projection_property_extra VALUES ('lastname', 'Название', 'caption', false, true, 'customers', NULL, 1, false, 'customers.lastname', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('lastname', 'Н...
-                    ^
 INSERT INTO projection_property_extra VALUES ('firstname', 'Описание', 'caption', false, true, 'customers', NULL, 2, false, 'customers.firstname', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('firstname', '...
-                    ^
 INSERT INTO projection_property_extra VALUES ('gender', 'Пол', 'invisible', false, true, 'customers', NULL, 7, false, 'customers.gender', 'Был строковым');
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('gender', 'Пол...
-                    ^
 INSERT INTO projection_property_extra VALUES ('username', 'Лoгин', 'invisible', false, false, 'customers', NULL, 4, false, 'customers.username', 'Был строковым');
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('username', 'Л...
-                    ^
 INSERT INTO projection_property_extra VALUES ('age', 'Количество обращений', 'progress', false, true, 'customers', NULL, 5, false, 'customers.age', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('age', 'Количе...
-                    ^
 INSERT INTO projection_property_extra VALUES ('income', 'Доход', 'invisible', false, false, 'customers', NULL, 8, false, 'customers.income', 'Был строковым');
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('income', 'Дох...
-                    ^
 INSERT INTO projection_property_extra VALUES ('zip', 'Индекс', 'invisible', false, false, 'customers', NULL, 10, false, 'customers.zip', 'Был строковым');
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('zip', 'Индекс...
-                    ^
 INSERT INTO projection_property_extra VALUES ('track', 'track', 'string', false, false, 'tr_map_traffic', NULL, 999, false, 'tr_map_traffic.track', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('track', 'trac...
-                    ^
 INSERT INTO projection_property_extra VALUES ('key', 'key', 'pgdid', false, true, 'products', NULL, 999, false, 'products.key', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('key', 'key', ...
-                    ^
 INSERT INTO projection_property_extra VALUES ('prod_key', 'prod_key', 'pgdid_ref', false, true, 'orderlines', 'products', 999, false, 'orderlines.prod_key', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('prod_key', 'p...
-                    ^
 INSERT INTO projection_property_extra VALUES ('prod_key', 'prod_key', 'pgdid_ref', false, true, 'inventory', 'products', 999, false, 'inventory.prod_key', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('prod_key', 'p...
-                    ^
 INSERT INTO projection_property_extra VALUES ('prod_id', 'Товар', 'ref', false, false, 'orderlines', 'products', 2, false, 'orderlines.prod_id', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('prod_id', 'То...
-                    ^
 INSERT INTO projection_property_extra VALUES ('prod_id', 'Товар', 'ref', false, false, 'inventory', 'products', 1, false, 'inventory.prod_id', NULL);
-ERROR:  relation "projection_property_extra" does not exist
-LINE 1: INSERT INTO projection_property_extra VALUES ('prod_id', 'То...
-                    ^
 INSERT INTO projection_relation_extra VALUES ('customers_add', false, false, 'customers_edit', 'customers_add', true, 0, NULL, 'dvd.customers_add', 'customers_edit.dvd.customers.dvd.customers_add.customerid', NULL);
-ERROR:  relation "projection_relation_extra" does not exist
-LINE 1: INSERT INTO projection_relation_extra VALUES ('customers_add...
-                    ^
 INSERT INTO projection_relation_extra VALUES ('orders', false, false, 'orders', 'orders', true, 0, NULL, 'dvd.orders', 'orders.dvd.orders.dvd.orders._history_parent', NULL);
-ERROR:  relation "projection_relation_extra" does not exist
-LINE 1: INSERT INTO projection_relation_extra VALUES ('orders', fals...
-                    ^
 INSERT INTO projection_relation_extra VALUES ('inventory', false, false, 'products', 'inventory', true, 2, NULL, 'dvd.inventory', 'products.dvd.products.dvd.inventory.prod_id', NULL);
-ERROR:  relation "projection_relation_extra" does not exist
-LINE 1: INSERT INTO projection_relation_extra VALUES ('inventory', f...
-                    ^
 INSERT INTO projection_relation_extra VALUES ('orderlines', false, false, 'products', 'orderlines', true, 0, NULL, 'dvd.orderlines', 'products.dvd.products.dvd.orderlines.prod_id', NULL);
-ERROR:  relation "projection_relation_extra" does not exist
-LINE 1: INSERT INTO projection_relation_extra VALUES ('orderlines', ...
-                    ^
 INSERT INTO property_extra VALUES ('category', 'category', 'string', false, false, NULL, NULL, NULL, NULL, 999, 'dvd.categories', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('category', 'category', '...
-                    ^
 INSERT INTO property_extra VALUES ('age', 'Возраст', 'integer', false, true, NULL, NULL, NULL, NULL, 5, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('age', 'Возраст', 'intege...
-                    ^
 INSERT INTO property_extra VALUES ('zip', 'Индекс', 'string', false, false, NULL, NULL, NULL, NULL, 10, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('zip', 'Индекс', 'string'...
-                    ^
 INSERT INTO property_extra VALUES ('categoryname', 'Наименование', 'caption', false, true, NULL, NULL, NULL, NULL, 999, 'dvd.categories', 'Имя категории', NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('categoryname', 'Наименов...
-                    ^
 INSERT INTO property_extra VALUES ('address1', 'Адрес', 'string', false, false, NULL, NULL, NULL, NULL, 3, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('address1', 'Адрес', 'str...
-                    ^
 INSERT INTO property_extra VALUES ('tax', 'Налог', 'money', false, true, NULL, NULL, NULL, NULL, 4, 'dvd.orders', 'Налог с продаж - оплачивается покупателем и включается в общую стоимость', NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('tax', 'Налог', 'money', ...
-                    ^
 INSERT INTO property_extra VALUES ('category', 'Категория', 'ref', false, true, 'categories', NULL, 'category', NULL, 3, 'dvd.products', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('category', 'Категория', ...
-                    ^
 INSERT INTO property_extra VALUES ('price', 'Цена', 'string', false, true, NULL, NULL, NULL, NULL, 4, 'dvd.products', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('price', 'Цена', 'string'...
-                    ^
 INSERT INTO property_extra VALUES ('lastname', 'Фамилия', 'caption', false, true, NULL, NULL, NULL, NULL, 1, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('lastname', 'Фамилия', 'c...
-                    ^
 INSERT INTO property_extra VALUES ('firstname', 'Имя', 'caption', false, true, NULL, NULL, NULL, NULL, 2, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('firstname', 'Имя', 'capt...
-                    ^
 INSERT INTO property_extra VALUES ('username', 'Лoгин', 'string', false, false, NULL, NULL, NULL, NULL, 4, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('username', 'Лoгин', 'str...
-                    ^
 INSERT INTO property_extra VALUES ('quantity', 'Количество', 'string', false, true, NULL, NULL, NULL, NULL, 3, 'dvd.orderlines', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('quantity', 'Количество',...
-                    ^
 INSERT INTO property_extra VALUES ('orderdate', 'Дата', 'string', false, true, NULL, NULL, NULL, NULL, 4, 'dvd.orderlines', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('orderdate', 'Дата', 'str...
-                    ^
 INSERT INTO property_extra VALUES ('orderlinekey', '№', 'string', false, false, NULL, NULL, NULL, NULL, 1, 'dvd.orderlines', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('orderlinekey', '№', 'str...
-                    ^
 INSERT INTO property_extra VALUES ('orderlineid', 'orderlineid', 'string', false, false, NULL, NULL, NULL, NULL, 999, 'dvd.orderlines', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('orderlineid', 'orderline...
-                    ^
 INSERT INTO property_extra VALUES ('orderid', 'Заказ', 'ref', false, true, 'orders', NULL, 'orderid', NULL, 1, 'dvd.orderlines', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('orderid', 'Заказ', 'ref'...
-                    ^
 INSERT INTO property_extra VALUES ('prod_id', 'Товар', 'ref', false, true, 'products', NULL, 'prod_id', NULL, 2, 'dvd.orderlines', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('prod_id', 'Товар', 'ref'...
-                    ^
 INSERT INTO property_extra VALUES ('orderid', 'Номер заказа', 'caption', true, true, NULL, NULL, NULL, NULL, 0, 'dvd.orders', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('orderid', 'Номер заказа'...
-                    ^
 INSERT INTO property_extra VALUES ('comment', 'Комментарий', 'plain', false, true, NULL, NULL, NULL, NULL, 1100, 'dvd.orders', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('comment', 'Комментарий',...
-                    ^
 INSERT INTO property_extra VALUES ('actor', 'Исполнитель главной роли', 'string', false, true, NULL, NULL, NULL, NULL, 2, 'dvd.products', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('actor', 'Исполнитель гла...
-                    ^
 INSERT INTO property_extra VALUES ('gender', 'Пол', 'string', false, true, NULL, NULL, NULL, NULL, 7, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('gender', 'Пол', 'string'...
-                    ^
 INSERT INTO property_extra VALUES ('country', 'Страна', 'string', false, true, NULL, NULL, NULL, NULL, 11, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('country', 'Страна', 'str...
-                    ^
 INSERT INTO property_extra VALUES ('customerid', 'customerid', 'string', false, false, NULL, NULL, NULL, NULL, 999, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('customerid', 'customerid...
-                    ^
 INSERT INTO property_extra VALUES ('creditcard', 'Кредитная карта', 'string', false, false, NULL, NULL, NULL, NULL, 15, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('creditcard', 'Кредитная ...
-                    ^
 INSERT INTO property_extra VALUES ('state', 'state', 'string', false, false, NULL, NULL, NULL, NULL, 999, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('state', 'state', 'string...
-                    ^
 INSERT INTO property_extra VALUES ('address2', 'address2', 'string', false, false, NULL, NULL, NULL, NULL, 999, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('address2', 'address2', '...
-                    ^
 INSERT INTO property_extra VALUES ('password', 'Пароль', 'string', false, false, NULL, NULL, NULL, NULL, 999, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('password', 'Пароль', 'st...
-                    ^
 INSERT INTO property_extra VALUES ('email', 'email', 'string', false, false, NULL, NULL, NULL, NULL, 16, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('email', 'email', 'string...
-                    ^
 INSERT INTO property_extra VALUES ('creditcardtype', 'creditcardtype', 'string', false, false, NULL, NULL, NULL, NULL, 999, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('creditcardtype', 'credit...
-                    ^
 INSERT INTO property_extra VALUES ('creditcardexpiration', 'Срок действия карты', 'string', false, false, NULL, NULL, NULL, NULL, 9, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('creditcardexpiration', '...
-                    ^
 INSERT INTO property_extra VALUES ('customerid', 'Клиент', 'ref', false, true, 'customers', NULL, 'customerid', NULL, 1, 'dvd.orders', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('customerid', 'Клиент', '...
-                    ^
 INSERT INTO property_extra VALUES ('orderdate', 'Дата заказа', 'date', false, true, NULL, NULL, NULL, NULL, 2, 'dvd.orders', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('orderdate', 'Дата заказа...
-                    ^
 INSERT INTO property_extra VALUES ('netamount', 'Стоимость', 'money', false, true, NULL, NULL, NULL, NULL, 3, 'dvd.orders', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('netamount', 'Стоимость',...
-                    ^
 INSERT INTO property_extra VALUES ('quan_in_stock', 'В запасе', 'integer', false, true, NULL, NULL, NULL, NULL, 2, 'dvd.inventory', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('quan_in_stock', 'В запас...
-                    ^
 INSERT INTO property_extra VALUES ('totalamount', 'Итого', 'money', false, true, NULL, NULL, NULL, NULL, 5, 'dvd.orders', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('totalamount', 'Итого', '...
-                    ^
 INSERT INTO property_extra VALUES ('title', 'Название', 'caption', false, true, NULL, NULL, NULL, NULL, 1, 'dvd.products', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('title', 'Название', 'cap...
-                    ^
 INSERT INTO property_extra VALUES ('sales', 'Продано', 'integer', false, true, NULL, NULL, NULL, NULL, 3, 'dvd.inventory', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('sales', 'Продано', 'inte...
-                    ^
 INSERT INTO property_extra VALUES ('special', 'Особый', 'bool', false, true, NULL, NULL, NULL, NULL, 999, 'dvd.products', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('special', 'Особый', 'boo...
-                    ^
 INSERT INTO property_extra VALUES ('region', 'Регион', 'string', false, false, NULL, NULL, NULL, NULL, 12, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('region', 'Регион', 'stri...
-                    ^
 INSERT INTO property_extra VALUES ('phone', 'Телефон', 'string', false, true, NULL, NULL, NULL, NULL, 6, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('phone', 'Телефон', 'stri...
-                    ^
 INSERT INTO property_extra VALUES ('city', 'Город', 'string', false, false, NULL, NULL, NULL, NULL, 13, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('city', 'Город', 'string'...
-                    ^
 INSERT INTO property_extra VALUES ('income', 'Доход', 'string', false, false, NULL, NULL, NULL, NULL, 8, 'dvd.customers', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('income', 'Доход', 'strin...
-                    ^
 INSERT INTO property_extra VALUES ('prod_id', 'Товар', 'ref', false, true, 'products', NULL, 'prod_id', NULL, 1, 'dvd.inventory', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('prod_id', 'Товар', 'ref'...
-                    ^
 INSERT INTO property_extra VALUES ('common_prod_id', 'Общий продукт', 'ref', false, false, 'products', NULL, 'prod_id', NULL, 999, 'dvd.products', NULL, NULL);
-ERROR:  relation "property_extra" does not exist
-LINE 1: INSERT INTO property_extra VALUES ('common_prod_id', 'Общий ...
-                    ^
 INSERT INTO relation_extra VALUES ('Таблицы в подписки', NULL, 'sync.tables_sync.sync.tables_sync.base_for', 0, NULL, NULL);
-ERROR:  relation "relation_extra" does not exist
-LINE 1: INSERT INTO relation_extra VALUES ('Таблицы в подписки', NUL...
-                    ^
 INSERT INTO relation_extra VALUES ('Строки заказа', NULL, 'dvd.orders.dvd.orderlines.orderid', 0, NULL, NULL);
-ERROR:  relation "relation_extra" does not exist
-LINE 1: INSERT INTO relation_extra VALUES ('Строки заказа', NULL, 'd...
-                    ^
 INSERT INTO relation_extra VALUES ('Товары', NULL, 'dvd.categories.dvd.products.category', 0, NULL, NULL);
-ERROR:  relation "relation_extra" does not exist
-LINE 1: INSERT INTO relation_extra VALUES ('Товары', NULL, 'dvd.cate...
-                    ^
 INSERT INTO relation_extra VALUES ('Заказы', NULL, 'dvd.customers.dvd.orders.customerid', 0, NULL, NULL);	
-ERROR:  relation "relation_extra" does not exist
-LINE 1: INSERT INTO relation_extra VALUES ('Заказы', NULL, 'dvd.cust...
-                    ^
 	
