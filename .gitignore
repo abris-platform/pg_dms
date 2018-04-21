@@ -1,6 +1,6 @@
-pgdms.o
-pgdms.so
-pgdms-0.0.1-1-x86_64.pkg.tar
+pg_dms.o
+pg_dms.so
+pg_dms-0.0.1-1-x86_64.pkg.tar
 regression.diffs
 regression.out
 results/

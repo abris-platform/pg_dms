@@ -1,10 +1,10 @@
-CREATE EXTENSION pgdms CASCADE;
-CREATE EXTENSION pgabris CASCADE;
+CREATE EXTENSION pg_dms CASCADE;
+CREATE EXTENSION pg_abris CASCADE;
 
 
 
 CREATE TABLE public.test (
-  KEY pgdms_d NOT NULL,
+  KEY pg_dms_d NOT NULL,
   num integer
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
@@ -19,7 +19,7 @@ select * from test;
 
 
 CREATE TABLE public.d (
-  KEY pgdms_did NOT NULL,
+  KEY pg_dms_did NOT NULL,
   num integer,
   CONSTRAINT d_pkey PRIMARY KEY (KEY))
 WITH (OIDS = FALSE) TABLESPACE pg_default;
@@ -38,7 +38,7 @@ CREATE SEQUENCE public.dup_key_seq
 
 CREATE TABLE public.dup (
   KEY integer NOT NULL DEFAULT nextval('dup_key_seq'::regclass),
-  d pgdms_family_ref,
+  d pg_dms_family_ref,
   name text COLLATE pg_catalog. "default",
   CONSTRAINT dup_pkey PRIMARY KEY (KEY),
   CONSTRAINT dup_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON
@@ -56,7 +56,7 @@ CREATE SEQUENCE public.dn_key_seq
 
 CREATE TABLE public.dn (
   KEY integer NOT NULL DEFAULT nextval('dn_key_seq'::regclass),
-  d pgdms_ref,
+  d pg_dms_ref,
   name text COLLATE pg_catalog. "default",
   CONSTRAINT dn_pkey PRIMARY KEY (KEY)
   , CONSTRAINT dn_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON
@@ -84,31 +84,31 @@ INSERT INTO public.d (KEY, num)
         num = 1), 2);
 
 SELECT
-  public.pgdms_set_action ('public.d', (
+  public.pg_dms_set_action ('public.d', (
       SELECT
         KEY
       FROM
         d
       WHERE
-        num = 2), 'created'::pgdms_actiontype, 'Yra');
+        num = 2), 'created'::pg_dms_actiontype, 'Yra');
 
 SELECT
-  public.pgdms_set_action ('public.d', (
+  public.pg_dms_set_action ('public.d', (
       SELECT
         KEY
       FROM
         d
       WHERE
-        num = 2), 'agreed'::pgdms_actiontype, '--');
+        num = 2), 'agreed'::pg_dms_actiontype, '--');
 
 SELECT
-  public.pgdms_set_action ('public.d', (
+  public.pg_dms_set_action ('public.d', (
       SELECT
         KEY
       FROM
         d
       WHERE
-        num = 2), 'approved'::pgdms_actiontype, '---');
+        num = 2), 'approved'::pg_dms_actiontype, '---');
 
 INSERT INTO public.d (KEY, num)
   VALUES ((
@@ -120,22 +120,22 @@ INSERT INTO public.d (KEY, num)
         num = 1), 3);
 
 SELECT
-  public.pgdms_set_action ('public.d', (
+  public.pg_dms_set_action ('public.d', (
       SELECT
         KEY
       FROM
         d
       WHERE
-        num = 3), 'agreed'::pgdms_actiontype, '--');
+        num = 3), 'agreed'::pg_dms_actiontype, '--');
 
 SELECT
-  public.pgdms_set_action ('public.d', (
+  public.pg_dms_set_action ('public.d', (
       SELECT
         KEY
       FROM
         d
       WHERE
-        num = 3), 'approved'::pgdms_actiontype, NULL);
+        num = 3), 'approved'::pg_dms_actiontype, NULL);
 
 
 
@@ -204,36 +204,36 @@ SELECT
 FROM
   public.d
 WHERE
-  KEY = 'document'::pgdms_status;
+  KEY = 'document'::pg_dms_status;
 
 --Вывод дествий по всем строкам
 --Результат с плановой ошибкой из-за времени	
---SELECT pgdms_get_actions(key),pgdms_get_hash(key),pgdms_get_status(key) FROM d;	
+--SELECT pg_dms_get_actions(key),pg_dms_get_hash(key),pg_dms_get_status(key) FROM d;	
 --Вывод статуса строк
 SELECT
-  pgdms_get_status (KEY)
+  pg_dms_get_status (KEY)
 FROM
   d;
 
 --Вывод только действующих документов
 SELECT
   num,
-  pgdms_get_status (KEY)
+  pg_dms_get_status (KEY)
 FROM
   d
 WHERE
-  pgdms_is_document (KEY);
+  pg_dms_is_document (KEY);
 
 --Вывод только  документов на дату
---SELECT num, pgdms_get_status(key) FROM d WHERE pgdms_is_document(key, now()-'20 milliseconds'::interval);
+--SELECT num, pg_dms_get_status(key) FROM d WHERE pg_dms_is_document(key, now()-'20 milliseconds'::interval);
 --Вывод записей одного семейства
 SELECT
   num,
-  pgdms_get_status (KEY)
+  pg_dms_get_status (KEY)
 FROM
   d
 WHERE
-  pgdms_is_family (KEY, (
+  pg_dms_is_family (KEY, (
       SELECT
         KEY
       FROM
@@ -243,11 +243,11 @@ WHERE
 
 SELECT
   num,
-  pgdms_get_status (KEY)
+  pg_dms_get_status (KEY)
 FROM
   d
 WHERE
-  pgdms_is_family (KEY, (
+  pg_dms_is_family (KEY, (
       SELECT
         key::text
       FROM
@@ -261,5 +261,5 @@ SELECT
 FROM
   d
 WHERE
-  pgdms_is_last ('public.d', KEY);
+  pg_dms_is_last ('public.d', KEY);
 

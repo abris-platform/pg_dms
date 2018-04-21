@@ -8,7 +8,7 @@ CREATE TABLE dvd.products (
     price numeric NOT NULL,
     special smallint,
     common_prod_id integer,
-    key pgdms_did DEFAULT NULL::uuid NOT NULL
+    key pg_dms_did DEFAULT NULL::uuid NOT NULL
 );
 
 CREATE TABLE dvd.categories (
@@ -43,7 +43,7 @@ CREATE TABLE dvd.inventory (
     prod_id integer NOT NULL,
     quan_in_stock integer NOT NULL,
     sales integer NOT NULL,
-    prod_key pgdms_family_ref
+    prod_key pg_dms_family_ref
 );
 
 CREATE TABLE dvd.orderlines (
@@ -53,7 +53,7 @@ CREATE TABLE dvd.orderlines (
     quantity smallint NOT NULL,
     orderdate date NOT NULL,
     orderlinekey integer NOT NULL,
-    prod_key pgdms_ref
+    prod_key pg_dms_ref
 );
 
 CREATE TABLE dvd.orders (
@@ -1228,7 +1228,7 @@ INSERT INTO menu_item VALUES ('orders', 'Заказы', 'shop', 'orders', 'list'
 INSERT INTO menu_item VALUES ('customers-home', 'Клиенты', 'home', 'customers', 'list', NULL, 0, NULL, 'narrow', NULL);
 INSERT INTO menu_item VALUES ('orders-home', 'Заказы', 'customers-home', 'orders', 'list', NULL, 0, NULL, NULL, NULL);
 INSERT INTO menu_item VALUES ('shop', 'Магазин DVD', NULL, NULL, 'list', NULL, 1, 'fa-shopping-cart ', NULL, NULL);
-INSERT INTO menu_item VALUES ('products', 'Товары', 'shop', 'products', 'pgdmslist', NULL, 5, NULL, NULL, NULL);
+INSERT INTO menu_item VALUES ('products', 'Товары', 'shop', 'products', 'pg_dmslist', NULL, 5, NULL, NULL, NULL);
 
 
 

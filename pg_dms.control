@@ -1,4 +1,4 @@
-# pgdms extension
+# pg_dms extension
 comment = 'Document management system'
 default_version = '0.0.1'
 requires = 'uuid-ossp'
