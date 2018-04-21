@@ -7,8 +7,9 @@ license=('GPL')
 depends=('postgresql')
 options=('!makeflags')
 source=()
+options=(debug !strip)
 
 package() {
   cd "$startdir"
-  make DESTDIR="${pkgdir}" install
+  make DESTDIR="${pkgdir}" CFLAGS="-O3 -g -Wall" install
 }

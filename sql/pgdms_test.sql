@@ -1,8 +1,22 @@
 CREATE EXTENSION pgdms CASCADE;
 CREATE EXTENSION pgabris CASCADE;
 
-SELECT
-  hello ();
+
+
+CREATE TABLE public.test (
+  KEY pgdms_d NOT NULL,
+  num integer
+)
+WITH (OIDS = FALSE) TABLESPACE pg_default;
+
+INSERT INTO public.test (KEY, num)
+  VALUES ('6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd', 1);
+
+select * from test;
+
+
+
+
 
 CREATE TABLE public.d (
   KEY pgdms_did NOT NULL,
@@ -15,6 +29,12 @@ CREATE SEQUENCE public.dup_key_seq
   MINVALUE 1
   MAXVALUE 2147483647
   CACHE 1;
+
+--CREATE INDEX products_idx
+--    ON public.d USING btree
+--    (key)  
+--    TABLESPACE pg_default;
+
 
 CREATE TABLE public.dup (
   KEY integer NOT NULL DEFAULT nextval('dup_key_seq'::regclass),
@@ -33,16 +53,23 @@ CREATE SEQUENCE public.dn_key_seq
   MAXVALUE 2147483647
   CACHE 1;
 
+
 CREATE TABLE public.dn (
   KEY integer NOT NULL DEFAULT nextval('dn_key_seq'::regclass),
   d pgdms_ref,
   name text COLLATE pg_catalog. "default",
-  CONSTRAINT dn_pkey PRIMARY KEY (KEY),
-  CONSTRAINT dn_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON
+  CONSTRAINT dn_pkey PRIMARY KEY (KEY)
+  , CONSTRAINT dn_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON
   UPDATE
-    NO ACTION ON DELETE NO ACTION
+  NO ACTION ON DELETE NO ACTION
 )
   WITH (OIDS = FALSE) TABLESPACE pg_default;
+
+--CREATE INDEX dn_idx_d
+--    ON public.dn USING btree
+--    (d)
+--    TABLESPACE pg_default;
+
 
 INSERT INTO public.d (KEY, num)
   VALUES (null::uuid, 1);
@@ -110,6 +137,12 @@ SELECT
       WHERE
         num = 3), 'approved'::pgdms_actiontype, NULL);
 
+
+
+select * from d;
+
+
+
 INSERT INTO public.dup (d, name)
   VALUES ((
       SELECT
@@ -122,43 +155,41 @@ INSERT INTO public.dup (d, name)
 INSERT INTO public.dn (d, name)
   VALUES ((
       SELECT
-        key::uuid
+        key::text
       FROM
         public.d
       WHERE
         num = 1), 'a1');
+INSERT INTO public.dn (d, name)
+  VALUES ((
+      SELECT
+        key::text
+      FROM
+        public.d
+      WHERE
+        num = 2), 'a2');
+INSERT INTO public.dn (d, name)
+  VALUES ((
+      SELECT
+        key::text
+      FROM
+        public.d
+      WHERE
+        num = 3), 'a3');
+        
+------------------------------------------------
+SELECT   d.num FROM  d,  dup WHERE  d.key = dup.d;
 
-SELECT
-  d.num
-FROM
-  d,
-  dup
-WHERE
-  d.key = dup.d;
 
-SELECT
-  d.num
-FROM
-  d,
-  dn
-WHERE
-  d.key = dn.d;
+SELECT   d.num FROM   d,   dup WHERE   dup.d = d.key;
 
-SELECT
-  d.num
-FROM
-  d,
-  dup
-WHERE
-  dup.d = d.key;
+select d.num from d  left join dup on  d.key = dup.d;
 
-SELECT
-  d.num
-FROM
-  d,
-  dn
-WHERE
-  dn.d = d.key;
+
+SELECT   d.num FROM   d,   dn WHERE   d.key = dn.d;
+
+
+SELECT   d.num FROM   d,   dn WHERE   dn.d = d.key;
 
 INSERT INTO public.d (KEY, num)
   VALUES ('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 4);
