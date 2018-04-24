@@ -32,6 +32,30 @@ CREATE TYPE pg_dms_id (
    send = pg_dms_id_send,
    alignment = double
 );
+/*
+CREATE TYPE pg_dms_action_t AS (
+    "type" integer,
+    "user" Oid,
+    "date" TimestampTz 
+);
+*/
+CREATE TYPE pg_dms_action_t AS (
+    "type" integer,
+    "user" Oid,
+    "date" TimestampTz 
+);
+
+CREATE TABLE public.action_list (
+  key integer NOT NULL,
+  name text,
+  CONSTRAINT d_action_list_pkey PRIMARY KEY (KEY)
+)
+WITH (OIDS = FALSE) TABLESPACE pg_default;
+
+INSERT INTO public.action_list (KEY, name)  VALUES (0, 'Создано');
+INSERT INTO public.action_list (KEY, name)  VALUES (1, 'Проверено');
+INSERT INTO public.action_list (KEY, name)  VALUES (2, 'Утверждено');
+INSERT INTO public.action_list (KEY, name)  VALUES (3, 'Архивировано');
 
 
  
@@ -93,7 +117,7 @@ CREATE FUNCTION pg_dms_setstatus(pg_dms_id, int)
     LANGUAGE C IMMUTABLE STRICT;
 
 CREATE FUNCTION pg_dms_getaction(pg_dms_id)
-    RETURNS cstring
+    RETURNS pg_dms_action_t[]
     AS 'pg_dms.so'
     LANGUAGE C IMMUTABLE STRICT;
 

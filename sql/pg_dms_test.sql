@@ -47,11 +47,17 @@ UPDATE test SET key=pg_dms_setstatus(key,1) WHERE num = 5;
 select pg_dms_getstatus(key), num from test;
 
 
-select pg_dms_getaction(key), num from test;
-
 UPDATE test SET key=pg_dms_setaction(key,1) WHERE num = 3;
 
 select pg_dms_getaction(key), num from test;
+
+
+
+select a.name, au.rolname, "date" from unnest((select pg_dms_getaction(key) from test where num = 3) ) as t
+left join action_list a on t.type = a.key 
+left join pg_catalog.pg_authid au on t.user = au.oid;
+
+
 
 
 

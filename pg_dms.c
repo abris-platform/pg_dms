@@ -3,8 +3,14 @@
 #include "utils/fmgrprotos.h"
 #include "utils/uuid.h"
 #include "utils/timestamp.h"
+#include "utils/lsyscache.h"
+#include "utils/builtins.h"
+#include "utils/array.h"
 #include "access/xact.h"
+#include "access/htup_details.h"
 #include "miscadmin.h"
+#include "funcapi.h"
+
 
 PG_MODULE_MAGIC;
 #define PG_GETARG_PGDMSID_P(n) (pg_dms_id *)DatumGetPointer(PG_GETARG_DATUM(n))
@@ -104,7 +110,7 @@ PG_FUNCTION_INFO_V1(pg_dms_idgt);
 PG_FUNCTION_INFO_V1(pg_dms_idge);
 PG_FUNCTION_INFO_V1(pg_dms_ideq);
 PG_FUNCTION_INFO_V1(pg_dms_idlt);
-PG_FUNCTION_INFO_V1(pg_dms_idle);
+PG_FUNCTION_INFO_V1(pg_dms_idle); 
 
 
 Datum
@@ -166,6 +172,36 @@ Datum
 pg_dms_getaction(PG_FUNCTION_ARGS)
 {
     pg_dms_id  *id = PG_GETARG_PGDMSID_P(0);
+    int count = (VARSIZE(PG_GETARG_PGDMSID_P(0))-sizeof(pg_dms_id))/sizeof(action_t)+1;
+    TupleDesc itemTupleDesc = BlessTupleDesc(RelationNameGetTupleDesc("pg_dms_action_t"));
+    int16 typlen;
+    bool typbyval;
+    char typalign;
+    get_typlenbyvalalign(itemTupleDesc->tdtypeid, &typlen, &typbyval, &typalign);
+    
+    Datum *itemsArrayElements = palloc(sizeof(Datum) * count+1);
+
+    for(int i=0; i<count; i++){
+        Datum *itemValues = palloc(sizeof(Datum) * 3);
+        itemValues[0] = DatumGetInt32(id->action[i].type); 
+        itemValues[1] = DatumGetObjectId(id->action[0].user);
+        itemValues[2] = DatumGetTimestampTz(id->action[0].date);
+        bool *itemNulls = palloc(sizeof(bool) * 3);
+        itemNulls[0] = false;
+        itemNulls[1] = false;
+        itemNulls[2] = false;
+        HeapTuple itemHeapTuple = heap_form_tuple(itemTupleDesc, itemValues, itemNulls);
+        itemsArrayElements[i] = HeapTupleGetDatum(itemHeapTuple);
+    }
+ 
+
+    ArrayType *result = construct_array(itemsArrayElements, count, itemTupleDesc->tdtypeid, typlen, typbyval, typalign);
+
+    PG_RETURN_ARRAYTYPE_P(result);
+
+
+    /*
+    pg_dms_id  *id = PG_GETARG_PGDMSID_P(0);
     int num = (VARSIZE(PG_GETARG_PGDMSID_P(0))-sizeof(pg_dms_id))/sizeof(action_t);
     char       *result;
     result = psprintf("(%d %s, %s)", id->action[0].type, GetUserNameFromId(id->action[0].user, true), timestamptz_to_str(id->action[0].date));
@@ -173,6 +209,8 @@ pg_dms_getaction(PG_FUNCTION_ARGS)
        result = psprintf("%s, (%d %s %s)", result,  id->action[i].type, GetUserNameFromId(id->action[i].user, true), timestamptz_to_str(id->action[0].date));
     }
     PG_RETURN_CSTRING(result);
+    */
+
 };
 
 Datum
