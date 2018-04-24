@@ -3,26 +3,105 @@
 
 
 
-CREATE FUNCTION pg_dms_d_in(cstring)
-    RETURNS pg_dms_d
+CREATE FUNCTION pg_dms_id_in(cstring)
+    RETURNS pg_dms_id
     AS 'pg_dms.so'
     LANGUAGE C IMMUTABLE STRICT;
 
-CREATE FUNCTION pg_dms_d_out(pg_dms_d)
+CREATE FUNCTION pg_dms_id_out(pg_dms_id)
     RETURNS cstring
     AS 'pg_dms.so'
     LANGUAGE C IMMUTABLE STRICT;
 
+CREATE FUNCTION pg_dms_id_recv(internal)
+    RETURNS pg_dms_id
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_id_send(pg_dms_id)
+    RETURNS bytea
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
 
 
-CREATE TYPE pg_dms_d (
+CREATE TYPE pg_dms_id (
    internallength = VARIABLE,
-   input = pg_dms_d_in,
-   output = pg_dms_d_out,
---   receive = pg_dms_d_recv,
---   send = pg_dms_d_send,
+   input = pg_dms_id_in,
+   output = pg_dms_id_out,
+   receive = pg_dms_id_recv,
+   send = pg_dms_id_send,
    alignment = double
 );
+
+
+ 
+CREATE FUNCTION pg_dms_id_cmp(pg_dms_id, pg_dms_id)
+    RETURNS int
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_idgt(pg_dms_id, pg_dms_id)
+    RETURNS boolean
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_idge(pg_dms_id, pg_dms_id)
+    RETURNS boolean
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_ideq(pg_dms_id, pg_dms_id)
+    RETURNS boolean
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_idle(pg_dms_id, pg_dms_id)
+    RETURNS boolean
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_idlt(pg_dms_id, pg_dms_id)
+    RETURNS boolean
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OPERATOR pg_catalog. >  (PROCEDURE = pg_dms_idgt, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. >= (PROCEDURE = pg_dms_idge, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. =  (PROCEDURE = pg_dms_ideq, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. <= (PROCEDURE = pg_dms_idle, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. <  (PROCEDURE = pg_dms_idlt, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_id);
+
+CREATE OPERATOR CLASS pg_dms_id DEFAULT FOR TYPE pg_dms_id
+USING btree --family pg_dms_ops
+AS 
+  OPERATOR 1 <,
+  OPERATOR 2 <=,
+  OPERATOR 3 =,
+  OPERATOR 4 >=,
+  OPERATOR 5 >,
+FUNCTION 1 pg_dms_id_cmp(pg_dms_id, pg_dms_id);
+
+
+CREATE FUNCTION pg_dms_getstatus(pg_dms_id)
+    RETURNS int
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_setstatus(pg_dms_id, int)
+    RETURNS pg_dms_id
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_getaction(pg_dms_id)
+    RETURNS cstring
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION pg_dms_setaction(pg_dms_id, int)
+    RETURNS pg_dms_id
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
 
 
 /*

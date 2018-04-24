@@ -2,32 +2,147 @@ CREATE EXTENSION pg_dms CASCADE;
 NOTICE:  installing required extension "uuid-ossp"
 CREATE EXTENSION pg_abris CASCADE;
 CREATE TABLE public.test (
-  KEY pg_dms_d NOT NULL,
-  num integer
+  KEY pg_dms_id NOT NULL,
+  num integer,
+  CONSTRAINT d_pkey PRIMARY KEY (KEY)
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 INSERT INTO public.test (KEY, num)
   VALUES ('6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd', 1);
-select * from test;
+INSERT INTO public.test (KEY, num)
+  VALUES ('261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab', 2);
+INSERT INTO public.test (KEY, num)
+  VALUES ('73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a', 3);
+INSERT INTO public.test (KEY, num)
+  VALUES ('3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6', 4);
+INSERT INTO public.test (KEY, num)
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf', 5);
+INSERT INTO public.test (KEY, num)
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 6);
+INSERT INTO public.test (KEY, num)
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff', 7);
+select * from test order by key;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab |   2
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+ 6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd |   1
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+(7 rows)
+
+select * from test where key > '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+(3 rows)
+
+select * from test where key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+(4 rows)
+
+select * from test where key = '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+(1 row)
+
+select * from test where key < '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd |   1
-(1 row)
+ 261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab |   2
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+(3 rows)
+
+select * from test where key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd |   1
+ 261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab |   2
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+(4 rows)
+
+select pg_dms_getstatus(key), num from test;
+ pg_dms_getstatus | num 
+------------------+-----
+                0 |   1
+                0 |   2
+                0 |   3
+                0 |   4
+                0 |   5
+                0 |   6
+                0 |   7
+(7 rows)
+
+UPDATE test SET key=pg_dms_setstatus(key,1) WHERE num = 5;
+select pg_dms_getstatus(key), num from test;
+ pg_dms_getstatus | num 
+------------------+-----
+                0 |   1
+                0 |   2
+                0 |   3
+                0 |   4
+                0 |   6
+                0 |   7
+                1 |   5
+(7 rows)
+
+select pg_dms_getaction(key), num from test;
+              pg_dms_getaction               | num 
+---------------------------------------------+-----
+ (0 postgres, 2018-04-24 03:39:22.976664-07) |   1
+ (0 postgres, 2018-04-24 03:39:22.978216-07) |   2
+ (0 postgres, 2018-04-24 03:39:22.979235-07) |   3
+ (0 postgres, 2018-04-24 03:39:22.980282-07) |   4
+ (0 postgres, 2018-04-24 03:39:22.982741-07) |   6
+ (0 postgres, 2018-04-24 03:39:22.983821-07) |   7
+ (0 postgres, 2018-04-24 03:39:22.98156-07)  |   5
+(7 rows)
+
+UPDATE test SET key=pg_dms_setaction(key,1) WHERE num = 3;
+select pg_dms_getaction(key), num from test;
+                                    pg_dms_getaction                                     | num 
+-----------------------------------------------------------------------------------------+-----
+ (0 postgres, 2018-04-24 03:39:22.976664-07)                                             |   1
+ (0 postgres, 2018-04-24 03:39:22.978216-07)                                             |   2
+ (0 postgres, 2018-04-24 03:39:22.980282-07)                                             |   4
+ (0 postgres, 2018-04-24 03:39:22.982741-07)                                             |   6
+ (0 postgres, 2018-04-24 03:39:22.983821-07)                                             |   7
+ (0 postgres, 2018-04-24 03:39:22.98156-07)                                              |   5
+ (0 postgres, 2018-04-24 03:39:22.979235-07), (1 postgres 2018-04-24 03:39:22.979235-07) |   3
+(7 rows)
+
+/*
 
 CREATE TABLE public.d (
   KEY pg_dms_did NOT NULL,
   num integer,
   CONSTRAINT d_pkey PRIMARY KEY (KEY))
 WITH (OIDS = FALSE) TABLESPACE pg_default;
+
 CREATE SEQUENCE public.dup_key_seq
   INCREMENT 1 START 1
   MINVALUE 1
   MAXVALUE 2147483647
   CACHE 1;
+
 --CREATE INDEX products_idx
 --    ON public.d USING btree
 --    (key)  
 --    TABLESPACE pg_default;
+
+
 CREATE TABLE public.dup (
   KEY integer NOT NULL DEFAULT nextval('dup_key_seq'::regclass),
   d pg_dms_family_ref,
@@ -38,11 +153,14 @@ CREATE TABLE public.dup (
     NO ACTION ON DELETE NO ACTION
 )
   WITH (OIDS = FALSE) TABLESPACE pg_default;
+
 CREATE SEQUENCE public.dn_key_seq
   INCREMENT 1 START 1
   MINVALUE 1
   MAXVALUE 2147483647
   CACHE 1;
+
+
 CREATE TABLE public.dn (
   KEY integer NOT NULL DEFAULT nextval('dn_key_seq'::regclass),
   d pg_dms_ref,
@@ -53,12 +171,16 @@ CREATE TABLE public.dn (
   NO ACTION ON DELETE NO ACTION
 )
   WITH (OIDS = FALSE) TABLESPACE pg_default;
+
 --CREATE INDEX dn_idx_d
 --    ON public.dn USING btree
 --    (d)
 --    TABLESPACE pg_default;
+
+
 INSERT INTO public.d (KEY, num)
   VALUES (null::uuid, 1);
+
 INSERT INTO public.d (KEY, num)
   VALUES ((
       SELECT
@@ -67,12 +189,7 @@ INSERT INTO public.d (KEY, num)
         public.d
       WHERE
         num = 1), 2);
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
+
 SELECT
   public.pg_dms_set_action ('public.d', (
       SELECT
@@ -81,11 +198,6 @@ SELECT
         d
       WHERE
         num = 2), 'created'::pg_dms_actiontype, 'Yra');
-NOTICE:  Действие 'created' создается автоматически
- pg_dms_set_action 
--------------------
- f
-(1 row)
 
 SELECT
   public.pg_dms_set_action ('public.d', (
@@ -95,64 +207,6 @@ SELECT
         d
       WHERE
         num = 2), 'agreed'::pg_dms_actiontype, '--');
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--100
-NOTICE:  note--100
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status work
-NOTICE:  note--100
-NOTICE:  note--100
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--100
-NOTICE:  note--100
- pg_dms_set_action 
--------------------
- t
-(1 row)
 
 SELECT
   public.pg_dms_set_action ('public.d', (
@@ -162,56 +216,6 @@ SELECT
         d
       WHERE
         num = 2), 'approved'::pg_dms_actiontype, '---');
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status project
-NOTICE:  note--100
-NOTICE:  note--100
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status document
-NOTICE:  note--100
-NOTICE:  note--100
- pg_dms_set_action 
--------------------
- t
-(1 row)
 
 INSERT INTO public.d (KEY, num)
   VALUES ((
@@ -221,18 +225,7 @@ INSERT INTO public.d (KEY, num)
         public.d
       WHERE
         num = 1), 3);
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status work
+
 SELECT
   public.pg_dms_set_action ('public.d', (
       SELECT
@@ -241,79 +234,6 @@ SELECT
         d
       WHERE
         num = 3), 'agreed'::pg_dms_actiontype, '--');
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status work
-NOTICE:  note--100
-NOTICE:  note--100
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status work
-NOTICE:  note--100
-NOTICE:  note--100
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status project
-NOTICE:  note--100
-NOTICE:  note--100
- pg_dms_set_action 
--------------------
- t
-(1 row)
 
 SELECT
   public.pg_dms_set_action ('public.d', (
@@ -323,96 +243,12 @@ SELECT
         d
       WHERE
         num = 3), 'approved'::pg_dms_actiontype, NULL);
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status project
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status project
-NOTICE:  note--100
-NOTICE:  note--100
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status archival
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status archival
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status document b.status archival
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status archival
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status document b.status archival
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status archival
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status project b.status archival
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  a.status work b.status archival
-NOTICE:  note--100
-NOTICE:  note--100
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status document b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status work b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status project b.status document
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  a.status archival b.status document
-NOTICE:  note--100
-NOTICE:  note--100
- pg_dms_set_action 
--------------------
- t
-(1 row)
+
+
 
 select * from d;
-                                                                                                                                                                                                                                  key                                                                                                                                                                                                                                   | num 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----
- (ec277fa9-2a28-477a-b5dc-483550284967,ec277fa9-2a28-477a-b5dc-483550284967,work,"Sat Apr 21 16:23:51.122613 2018 PDT",,,,"[0:0]={""(\\""Sat Apr 21 16:23:51.122613 2018 PDT\\"",postgres,created,)""}")                                                                                                                                                                                                                                                                |   1
- (ec277fa9-2a28-477a-b5dc-483550284967,64091e57-45dd-4bf4-b73e-69077d037f18,archival,"Sat Apr 21 16:23:51.124622 2018 PDT",c81e728d-9d4c-2f63-6f06-7f89cc14862c,"Sat Apr 21 16:23:51.142185 2018 PDT","Sat Apr 21 16:23:51.155367 2018 PDT","[0:2]={""(\\""Sat Apr 21 16:23:51.124622 2018 PDT\\"",postgres,created,)"",""(\\""Sat Apr 21 16:23:51.127484 2018 PDT\\"",postgres,agreed,--)"",""(\\""Sat Apr 21 16:23:51.142185 2018 PDT\\"",postgres,approved,---)""}") |   2
- (ec277fa9-2a28-477a-b5dc-483550284967,0b4d4474-0c6a-429e-9616-9c3d330e5ab8,document,"Sat Apr 21 16:23:51.148049 2018 PDT",eccbc87e-4b5c-e2fe-2830-8fd9f2a7baf3,"Sat Apr 21 16:23:51.155367 2018 PDT",,"[0:2]={""(\\""Sat Apr 21 16:23:51.148049 2018 PDT\\"",postgres,created,)"",""(\\""Sat Apr 21 16:23:51.149757 2018 PDT\\"",postgres,agreed,--)"",""(\\""Sat Apr 21 16:23:51.155367 2018 PDT\\"",postgres,approved,)""}")                                         |   3
-(3 rows)
+
+
 
 INSERT INTO public.dup (d, name)
   VALUES ((
@@ -422,36 +258,7 @@ INSERT INTO public.dup (d, name)
         public.d
       WHERE
         num = 1), 'a1');
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 a.status document
-NOTICE:  return-- 0
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status work
-NOTICE:  return-- 0
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status project
-NOTICE:  return-- 0
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status document
-NOTICE:  return-- 0
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status document
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status project
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status project
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 a.status archival
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 a.status document
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 a.status work
-NOTICE:  note--7 return t
+
 INSERT INTO public.dn (d, name)
   VALUES ((
       SELECT
@@ -460,19 +267,6 @@ INSERT INTO public.dn (d, name)
         public.d
       WHERE
         num = 1), 'a1');
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 -1
-NOTICE:  note--206
 INSERT INTO public.dn (d, name)
   VALUES ((
       SELECT
@@ -481,21 +275,6 @@ INSERT INTO public.dn (d, name)
         public.d
       WHERE
         num = 2), 'a2');
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 0
-NOTICE:  note--206
-NOTICE:  note--206
-NOTICE:  note--206
 INSERT INTO public.dn (d, name)
   VALUES ((
       SELECT
@@ -504,179 +283,28 @@ INSERT INTO public.dn (d, name)
         public.d
       WHERE
         num = 3), 'a3');
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 0
-NOTICE:  note--206
-NOTICE:  note--206
-NOTICE:  note--206
-NOTICE:  note--206
         
 ------------------------------------------------
 SELECT   d.num FROM  d,  dup WHERE  d.key = dup.d;
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 a.status document
-NOTICE:  return-- 0
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status work
-NOTICE:  return-- 0
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status project
-NOTICE:  return-- 0
-NOTICE:  note--12
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status document
-NOTICE:  return-- 0
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status document
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status project
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status project
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 a.status archival
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 a.status document
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 a.status work
-NOTICE:  note--7 return t
- num 
------
-   3
-   2
-   1
-(3 rows)
+
 
 SELECT   d.num FROM   d,   dup WHERE   dup.d = d.key;
-NOTICE:  note--13
-NOTICE:  note--13
-NOTICE:  note--13
- num 
------
-   3
-(1 row)
 
 select d.num from d  left join dup on  d.key = dup.d;
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 a.status work
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 a.status archival
-NOTICE:  note--7 return t
-NOTICE:  note--7
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 a.status document
-NOTICE:  note--7 return t
- num 
------
-   1
-   2
-   3
-(3 rows)
+
 
 SELECT   d.num FROM   d,   dn WHERE   d.key = dn.d;
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id ec277fa9-2a28-477a-b5dc-483550284967 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id ec277fa9-2a28-477a-b5dc-483550284967
-NOTICE:  note--211 -1
-NOTICE:  note--206
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 -1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 64091e57-45dd-4bf4-b73e-69077d037f18
-NOTICE:  note--211 0
-NOTICE:  note--206
-NOTICE:  note--206
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 1
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 0
-NOTICE:  note--211
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family ec277fa9-2a28-477a-b5dc-483550284967, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8
-NOTICE:  note--211 0
-NOTICE:  note--206
-NOTICE:  note--206
- num 
------
-   1
-   2
-   3
-(3 rows)
+
 
 SELECT   d.num FROM   d,   dn WHERE   dn.d = d.key;
-NOTICE:  note--212
-NOTICE:  note--212
-NOTICE:  note--212
-NOTICE:  note--212
-NOTICE:  note--212
-NOTICE:  note--212
-NOTICE:  note--212
-NOTICE:  note--212
-NOTICE:  note--212
- num 
------
-   1
-   2
-   3
-(3 rows)
 
 INSERT INTO public.d (KEY, num)
   VALUES ('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 4);
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family 2604bebd-3369-423c-be17-9e27e50c823b, a.id 64091e57-45dd-4bf4-b73e-69077d037f18 b.id 98b877b9-c11b-422d-9637-c08a42bd5e43
-NOTICE:  a.status document b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family 2604bebd-3369-423c-be17-9e27e50c823b, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 98b877b9-c11b-422d-9637-c08a42bd5e43
-NOTICE:  a.status work b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family 2604bebd-3369-423c-be17-9e27e50c823b, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 98b877b9-c11b-422d-9637-c08a42bd5e43
-NOTICE:  a.status project b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family 2604bebd-3369-423c-be17-9e27e50c823b, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 98b877b9-c11b-422d-9637-c08a42bd5e43
-NOTICE:  a.status document b.status work
-NOTICE:  note--105
-NOTICE:  a.family ec277fa9-2a28-477a-b5dc-483550284967 b.family 2604bebd-3369-423c-be17-9e27e50c823b, a.id 0b4d4474-0c6a-429e-9616-9c3d330e5ab8 b.id 98b877b9-c11b-422d-9637-c08a42bd5e43
-NOTICE:  a.status document b.status work
+
 SELECT
   count(*)
 FROM
   public.d;
- count 
--------
-     4
-(1 row)
 
 SELECT
   num
@@ -684,10 +312,6 @@ FROM
   public.d
 WHERE
   KEY = 'document'::pg_dms_status;
- num 
------
-   3
-(1 row)
 
 --Вывод дествий по всем строкам
 --Результат с плановой ошибкой из-за времени	
@@ -697,13 +321,6 @@ SELECT
   pg_dms_get_status (KEY)
 FROM
   d;
- pg_dms_get_status 
--------------------
- Материал
- Архив
- Документ
- Материал
-(4 rows)
 
 --Вывод только действующих документов
 SELECT
@@ -713,10 +330,6 @@ FROM
   d
 WHERE
   pg_dms_is_document (KEY);
- num | pg_dms_get_status 
------+-------------------
-   3 | Документ
-(1 row)
 
 --Вывод только  документов на дату
 --SELECT num, pg_dms_get_status(key) FROM d WHERE pg_dms_is_document(key, now()-'20 milliseconds'::interval);
@@ -734,12 +347,6 @@ WHERE
         d
       WHERE
         num = 1));
- num | pg_dms_get_status 
------+-------------------
-   1 | Материал
-   2 | Архив
-   3 | Документ
-(3 rows)
 
 SELECT
   num,
@@ -754,12 +361,6 @@ WHERE
         d
       WHERE
         num = 1));
- num | pg_dms_get_status 
------+-------------------
-   1 | Материал
-   2 | Архив
-   3 | Документ
-(3 rows)
 
 --Вывод последных записей
 SELECT
@@ -768,9 +369,5 @@ FROM
   d
 WHERE
   pg_dms_is_last ('public.d', KEY);
- num 
------
-   1
-   4
-(2 rows)
 
+*/
