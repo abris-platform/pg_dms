@@ -3,6 +3,7 @@
 #include "utils/fmgrprotos.h"
 #include "utils/uuid.h"
 #include "utils/timestamp.h"
+
 #include "utils/lsyscache.h"
 #include "utils/builtins.h"
 #include "utils/array.h"
@@ -10,15 +11,13 @@
 #include "access/htup_details.h"
 #include "miscadmin.h"
 #include "funcapi.h"
-
-
+ 
 PG_MODULE_MAGIC;
+
+
+
 #define PG_GETARG_PGDMSID_P(n) (pg_dms_id *)DatumGetPointer(PG_GETARG_DATUM(n))
 #define ACTION_USER_LEN 20
-
- 
-
-
 
 typedef enum ACTION_TYPE {
   created,  
@@ -31,6 +30,8 @@ typedef struct {
     actiontype_t    type;
     Oid user;
     TimestampTz date;
+    Oid reason;
+    pg_uuid_t reazon_key;
 } action_t;
 
 
@@ -49,16 +50,18 @@ typedef struct pg_dms_id {
     action_t    action[1];
 } pg_dms_id;
 
+
+
 PG_FUNCTION_INFO_V1(pg_dms_id_in);
 PG_FUNCTION_INFO_V1(pg_dms_id_out);
 PG_FUNCTION_INFO_V1(pg_dms_id_recv);
 PG_FUNCTION_INFO_V1(pg_dms_id_send);
-
+PG_FUNCTION_INFO_V1(pg_dms_uuid2id);
 
 Datum
 pg_dms_id_in(PG_FUNCTION_ARGS)
 {
-    // elog(NOTICE, "pg_dms_id_in(PG_FUNCTION_ARGS)");
+    //elog(NOTICE, "pg_dms_id_in(PG_FUNCTION_ARGS)");
     // ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED), errmsg("%d", sizeof(pg_dms_id))));
 
     char         *str = PG_GETARG_CSTRING(0);
@@ -76,6 +79,34 @@ pg_dms_id_in(PG_FUNCTION_ARGS)
 
     PG_RETURN_POINTER(result);
 }
+
+
+
+
+
+Datum
+pg_dms_uuid2id(PG_FUNCTION_ARGS)
+{
+     //elog(NOTICE, "pg_dms_uuid2id(PG_FUNCTION_ARGS)");
+    // ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED), errmsg("%d", sizeof(pg_dms_id))));
+
+    pg_uuid_t         *a = PG_GETARG_UUID_P(0);
+    pg_dms_id    *result = palloc(sizeof(pg_dms_id));
+
+    SET_VARSIZE(result, sizeof(pg_dms_id));
+
+    result->family = *a;
+    result->version = *a;
+    result->status = project;
+    result->action[0].type = created;
+    result->action[0].user = GetUserId();
+    result->action[0].date = GetCurrentTransactionStartTimestamp();
+
+    PG_RETURN_POINTER(result);
+}
+
+
+
 Datum
 pg_dms_id_out(PG_FUNCTION_ARGS)
 {
@@ -182,14 +213,18 @@ pg_dms_getaction(PG_FUNCTION_ARGS)
     Datum *itemsArrayElements = palloc(sizeof(Datum) * count+1);
 
     for(int i=0; i<count; i++){
-        Datum *itemValues = palloc(sizeof(Datum) * 3);
+        Datum *itemValues = palloc(sizeof(Datum) * 5);
         itemValues[0] = DatumGetInt32(id->action[i].type); 
-        itemValues[1] = DatumGetObjectId(id->action[0].user);
-        itemValues[2] = DatumGetTimestampTz(id->action[0].date);
-        bool *itemNulls = palloc(sizeof(bool) * 3);
+        itemValues[1] = DatumGetObjectId(id->action[i].user);
+        itemValues[2] = DatumGetTimestampTz(id->action[i].date);
+        itemValues[3] = DatumGetObjectId(id->action[i].reason);
+        itemValues[4] = DatumGetUUIDP(&id->action[i].reazon_key);
+        bool *itemNulls = palloc(sizeof(bool) * 5);
         itemNulls[0] = false;
         itemNulls[1] = false;
         itemNulls[2] = false;
+        itemNulls[3] = id->action[i].reason?false:true;
+        itemNulls[4] = id->action[i].reason?false:true;
         HeapTuple itemHeapTuple = heap_form_tuple(itemTupleDesc, itemValues, itemNulls);
         itemsArrayElements[i] = HeapTupleGetDatum(itemHeapTuple);
     }
@@ -226,5 +261,8 @@ pg_dms_setaction(PG_FUNCTION_ARGS)
   result->action[num].type = PG_GETARG_INT32(1);
   result->action[num].user = GetUserId();
   result->action[num].date = GetCurrentTransactionStartTimestamp();
+  result->action[num].reason = PG_GETARG_OID(2);
+  pg_uuid_t  *a = PG_GETARG_UUID_P(3);
+  result->action[num].reazon_key = *a;
   PG_RETURN_POINTER(result);
 };

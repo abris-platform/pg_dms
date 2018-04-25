@@ -4,20 +4,18 @@ CREATE EXTENSION pg_abris CASCADE;
 
 
 CREATE TABLE public.test (
-  KEY pg_dms_id NOT NULL,
+  KEY pg_dms_id NOT NULL DEFAULT uuid_generate_v4(),
   num integer,
   CONSTRAINT d_pkey PRIMARY KEY (KEY)
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 
-INSERT INTO public.test (KEY, num)
-  VALUES ('6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd', 1);
+INSERT INTO public.test (num) VALUES (1);
+
+INSERT INTO public.test (num)  VALUES (2);
 
 INSERT INTO public.test (KEY, num)
-  VALUES ('261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab', 2);
-
-INSERT INTO public.test (KEY, num)
-  VALUES ('73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a', 3);
+  VALUES (('73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a')::pg_dms_id, 3);
 
 INSERT INTO public.test (KEY, num)
   VALUES ('3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6', 4);
@@ -47,15 +45,17 @@ UPDATE test SET key=pg_dms_setstatus(key,1) WHERE num = 5;
 select pg_dms_getstatus(key), num from test;
 
 
-UPDATE test SET key=pg_dms_setaction(key,1) WHERE num = 3;
+UPDATE test SET key=pg_dms_setaction(key, 1, (SELECT oid from pg_class where relname = 'test'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
 
 select pg_dms_getaction(key), num from test;
 
 
 
-select a.name, au.rolname, "date" from unnest((select pg_dms_getaction(key) from test where num = 3) ) as t
+select a.name, au.rolname, "date", c.relname, reason_key from unnest((select pg_dms_getaction(key) from test where num = 3) ) as t
 left join action_list a on t.type = a.key 
-left join pg_catalog.pg_authid au on t.user = au.oid;
+left join pg_catalog.pg_authid au on t.user = au.oid
+left join pg_catalog.pg_class c on t.reason = c.oid;
+
 
 
 

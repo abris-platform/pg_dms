@@ -42,7 +42,9 @@ CREATE TYPE pg_dms_action_t AS (
 CREATE TYPE pg_dms_action_t AS (
     "type" integer,
     "user" Oid,
-    "date" TimestampTz 
+    "date" TimestampTz,
+    "reason" Oid,
+    "reason_key" uuid 
 );
 
 CREATE TABLE public.action_list (
@@ -121,11 +123,25 @@ CREATE FUNCTION pg_dms_getaction(pg_dms_id)
     AS 'pg_dms.so'
     LANGUAGE C IMMUTABLE STRICT;
 
-CREATE FUNCTION pg_dms_setaction(pg_dms_id, int)
+CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid)
     RETURNS pg_dms_id
     AS 'pg_dms.so'
     LANGUAGE C IMMUTABLE STRICT;
 
+
+
+
+
+CREATE OR REPLACE FUNCTION public.pg_dms_uuid2id (uuid)
+  RETURNS pg_dms_id
+    AS 'pg_dms.so'
+    LANGUAGE C IMMUTABLE STRICT;
+
+/*
+* CAST pg_dms_action => text
+*/
+CREATE CAST(uuid AS pg_dms_id)
+WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS ASSIGNMENT;
 
 
 /*
