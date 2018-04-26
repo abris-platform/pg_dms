@@ -1,39 +1,54 @@
 CREATE EXTENSION pg_dms CASCADE;
 NOTICE:  installing required extension "uuid-ossp"
 CREATE EXTENSION pg_abris CASCADE;
-CREATE TABLE public.test (
-  KEY pg_dms_id NOT NULL,
+--
+--  Создание таблицы справочник
+--
+CREATE TABLE public.directory (
+  KEY pg_dms_id NOT NULL DEFAULT uuid_generate_v4(),
   num integer,
   CONSTRAINT d_pkey PRIMARY KEY (KEY)
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
-INSERT INTO public.test (KEY, num)
-  VALUES ('6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd', 1);
-INSERT INTO public.test (KEY, num)
-  VALUES ('261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab', 2);
-INSERT INTO public.test (KEY, num)
-  VALUES ('73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a', 3);
-INSERT INTO public.test (KEY, num)
+--
+--  Вставка значений по умочанию
+--
+-- Закоментировать - будут вставлены случайные ключи
+--INSERT INTO public.directory (num) VALUES (1);
+--INSERT INTO public.directory (num)  VALUES (2);
+--
+--  Вставка заначений в виде pg_dms_id
+--
+INSERT INTO public.directory (KEY, num)
+  VALUES (('73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a')::pg_dms_id, 3);
+--
+--  Вставка заначений в виде строки
+--
+INSERT INTO public.directory (KEY, num)
   VALUES ('3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6', 4);
-INSERT INTO public.test (KEY, num)
+INSERT INTO public.directory (KEY, num)
   VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf', 5);
-INSERT INTO public.test (KEY, num)
+INSERT INTO public.directory (KEY, num)
   VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 6);
-INSERT INTO public.test (KEY, num)
+INSERT INTO public.directory (KEY, num)
   VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff', 7);
-select * from test order by key;
+--
+--  Просмотр результата создания таблицы
+--
+SELECT * FROM directory order by key;
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
- 261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab |   2
  3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
- 6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd |   1
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
  ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
  ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
-(7 rows)
+(5 rows)
 
-select * from test where key > '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+--
+--  Поиск записей по различным условиям
+--
+SELECT * FROM directory WHERE key > '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
@@ -41,7 +56,7 @@ select * from test where key > '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a
  ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
 (3 rows)
 
-select * from test where key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
@@ -50,324 +65,168 @@ select * from test where key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4
  ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
 (4 rows)
 
-select * from test where key = '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key = '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
 (1 row)
 
-select * from test where key < '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key < '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
- 6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd |   1
- 261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab |   2
  3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
-(3 rows)
+(1 row)
 
-select * from test where key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
- 6bdc3400-00a9-4116-bb6d-81a2259cff96,050915a9-2e53-42ef-b43c-4eaefc9418bd |   1
- 261f1188-76da-489f-9c23-4adfdba053fe,dfe0a7b5-9589-4861-b7ad-b70a8af8a8ab |   2
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
  3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
-(4 rows)
+(2 rows)
 
-select pg_dms_getstatus(key), num from test;
+--
+--  Получение статуса строки
+--
+SELECT pg_dms_getstatus(key), num FROM directory;
  pg_dms_getstatus | num 
 ------------------+-----
-                0 |   1
-                0 |   2
                 0 |   3
                 0 |   4
                 0 |   5
                 0 |   6
                 0 |   7
-(7 rows)
+(5 rows)
 
-UPDATE test SET key=pg_dms_setstatus(key,1) WHERE num = 5;
-select pg_dms_getstatus(key), num from test;
+--
+--  Изменение статуса строки
+--
+UPDATE directory SET key=pg_dms_setstatus(key,1) WHERE num = 5;
+SELECT pg_dms_getstatus(key), num FROM directory;
  pg_dms_getstatus | num 
 ------------------+-----
-                0 |   1
-                0 |   2
                 0 |   3
                 0 |   4
                 0 |   6
                 0 |   7
                 1 |   5
-(7 rows)
+(5 rows)
 
-select pg_dms_getaction(key), num from test;
-              pg_dms_getaction               | num 
----------------------------------------------+-----
- (0 postgres, 2018-04-24 03:39:22.976664-07) |   1
- (0 postgres, 2018-04-24 03:39:22.978216-07) |   2
- (0 postgres, 2018-04-24 03:39:22.979235-07) |   3
- (0 postgres, 2018-04-24 03:39:22.980282-07) |   4
- (0 postgres, 2018-04-24 03:39:22.982741-07) |   6
- (0 postgres, 2018-04-24 03:39:22.983821-07) |   7
- (0 postgres, 2018-04-24 03:39:22.98156-07)  |   5
-(7 rows)
+--
+--  Добавление действия со строкой
+--
+UPDATE directory SET key=pg_dms_setaction(key, 1, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
+--Закоментировать - возвращается текущая дата
+--SELECT pg_dms_getaction(key), num FROM directory;
+--
+--  Просмот действий со строкой в виде таблицы
+--
+--Закоментировать - возвращается текущая дата
+--SELECT a.name, au.rolname, "date", c.relname, reason_key FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
+--LEFT JOIN action_list a ON t.type = a.key 
+--LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
+--LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
+--
+--  Поиск в таблице по значению uuid
+--
+SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid = key;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+(3 rows)
 
-UPDATE test SET key=pg_dms_setaction(key,1) WHERE num = 3;
-select pg_dms_getaction(key), num from test;
-                                    pg_dms_getaction                                     | num 
------------------------------------------------------------------------------------------+-----
- (0 postgres, 2018-04-24 03:39:22.976664-07)                                             |   1
- (0 postgres, 2018-04-24 03:39:22.978216-07)                                             |   2
- (0 postgres, 2018-04-24 03:39:22.980282-07)                                             |   4
- (0 postgres, 2018-04-24 03:39:22.982741-07)                                             |   6
- (0 postgres, 2018-04-24 03:39:22.983821-07)                                             |   7
- (0 postgres, 2018-04-24 03:39:22.98156-07)                                              |   5
- (0 postgres, 2018-04-24 03:39:22.979235-07), (1 postgres 2018-04-24 03:39:22.979235-07) |   3
-(7 rows)
+SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid < key;
+ key | num 
+-----+-----
+(0 rows)
 
-/*
+SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid <= key;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+(3 rows)
 
-CREATE TABLE public.d (
-  KEY pg_dms_did NOT NULL,
-  num integer,
-  CONSTRAINT d_pkey PRIMARY KEY (KEY))
-WITH (OIDS = FALSE) TABLESPACE pg_default;
+SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid > key;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+(2 rows)
 
-CREATE SEQUENCE public.dup_key_seq
-  INCREMENT 1 START 1
-  MINVALUE 1
-  MAXVALUE 2147483647
-  CACHE 1;
+SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid >= key;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+(5 rows)
 
---CREATE INDEX products_idx
---    ON public.d USING btree
---    (key)  
---    TABLESPACE pg_default;
+SELECT * FROM directory WHERE  key = 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+(3 rows)
 
+SELECT * FROM directory WHERE  key < 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+(2 rows)
 
-CREATE TABLE public.dup (
-  KEY integer NOT NULL DEFAULT nextval('dup_key_seq'::regclass),
-  d pg_dms_family_ref,
-  name text COLLATE pg_catalog. "default",
-  CONSTRAINT dup_pkey PRIMARY KEY (KEY),
-  CONSTRAINT dup_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON
-  UPDATE
-    NO ACTION ON DELETE NO ACTION
+SELECT * FROM directory WHERE  key <= 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+(5 rows)
+
+SELECT * FROM directory WHERE  key > 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
+ key | num 
+-----+-----
+(0 rows)
+
+SELECT * FROM directory WHERE  key >= 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+(3 rows)
+
+--
+--  Создание таблицы в которой есть ссылка на семейство записей в таблице справочника
+--
+CREATE TABLE public.family (
+  KEY integer NOT NULL,
+  directory_key pg_dms_family,
+  name text,
+  CONSTRAINT family_pkey PRIMARY KEY (KEY),
+  CONSTRAINT family_directory_fkey FOREIGN KEY (directory_key) REFERENCES public.directory (KEY)
 )
   WITH (OIDS = FALSE) TABLESPACE pg_default;
+--
+--  Добавление записи в таблицу со ссылкий на справочник
+--
+INSERT INTO public.family (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1-993f-f71ba3882796','a1');
+--
+--  Просмотр результата вставки
+--
+SELECT * FROM public.family LEFT JOIN  public.directory ON family.directory_key = directory.key;
+ key |            directory_key             | name |                                    key                                    | num 
+-----+--------------------------------------+------+---------------------------------------------------------------------------+-----
+   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
+   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+(3 rows)
 
-CREATE SEQUENCE public.dn_key_seq
-  INCREMENT 1 START 1
-  MINVALUE 1
-  MAXVALUE 2147483647
-  CACHE 1;
-
-
-CREATE TABLE public.dn (
-  KEY integer NOT NULL DEFAULT nextval('dn_key_seq'::regclass),
-  d pg_dms_ref,
-  name text COLLATE pg_catalog. "default",
-  CONSTRAINT dn_pkey PRIMARY KEY (KEY)
-  , CONSTRAINT dn_d_fkey FOREIGN KEY (d) REFERENCES public.d (KEY) MATCH SIMPLE ON
-  UPDATE
-  NO ACTION ON DELETE NO ACTION
-)
-  WITH (OIDS = FALSE) TABLESPACE pg_default;
-
---CREATE INDEX dn_idx_d
---    ON public.dn USING btree
---    (d)
---    TABLESPACE pg_default;
-
-
-INSERT INTO public.d (KEY, num)
-  VALUES (null::uuid, 1);
-
-INSERT INTO public.d (KEY, num)
-  VALUES ((
-      SELECT
-        key::uuid
-      FROM
-        public.d
-      WHERE
-        num = 1), 2);
-
-SELECT
-  public.pg_dms_set_action ('public.d', (
-      SELECT
-        KEY
-      FROM
-        d
-      WHERE
-        num = 2), 'created'::pg_dms_actiontype, 'Yra');
-
-SELECT
-  public.pg_dms_set_action ('public.d', (
-      SELECT
-        KEY
-      FROM
-        d
-      WHERE
-        num = 2), 'agreed'::pg_dms_actiontype, '--');
-
-SELECT
-  public.pg_dms_set_action ('public.d', (
-      SELECT
-        KEY
-      FROM
-        d
-      WHERE
-        num = 2), 'approved'::pg_dms_actiontype, '---');
-
-INSERT INTO public.d (KEY, num)
-  VALUES ((
-      SELECT
-        key::uuid
-      FROM
-        public.d
-      WHERE
-        num = 1), 3);
-
-SELECT
-  public.pg_dms_set_action ('public.d', (
-      SELECT
-        KEY
-      FROM
-        d
-      WHERE
-        num = 3), 'agreed'::pg_dms_actiontype, '--');
-
-SELECT
-  public.pg_dms_set_action ('public.d', (
-      SELECT
-        KEY
-      FROM
-        d
-      WHERE
-        num = 3), 'approved'::pg_dms_actiontype, NULL);
-
-
-
-select * from d;
-
-
-
-INSERT INTO public.dup (d, name)
-  VALUES ((
-      SELECT
-        key::uuid
-      FROM
-        public.d
-      WHERE
-        num = 1), 'a1');
-
-INSERT INTO public.dn (d, name)
-  VALUES ((
-      SELECT
-        key::text
-      FROM
-        public.d
-      WHERE
-        num = 1), 'a1');
-INSERT INTO public.dn (d, name)
-  VALUES ((
-      SELECT
-        key::text
-      FROM
-        public.d
-      WHERE
-        num = 2), 'a2');
-INSERT INTO public.dn (d, name)
-  VALUES ((
-      SELECT
-        key::text
-      FROM
-        public.d
-      WHERE
-        num = 3), 'a3');
-        
-------------------------------------------------
-SELECT   d.num FROM  d,  dup WHERE  d.key = dup.d;
-
-
-SELECT   d.num FROM   d,   dup WHERE   dup.d = d.key;
-
-select d.num from d  left join dup on  d.key = dup.d;
-
-
-SELECT   d.num FROM   d,   dn WHERE   d.key = dn.d;
-
-
-SELECT   d.num FROM   d,   dn WHERE   dn.d = d.key;
-
-INSERT INTO public.d (KEY, num)
-  VALUES ('2604bebd-3369-423c-be17-9e27e50c823b'::uuid, 4);
-
-SELECT
-  count(*)
-FROM
-  public.d;
-
-SELECT
-  num
-FROM
-  public.d
-WHERE
-  KEY = 'document'::pg_dms_status;
-
---Вывод дествий по всем строкам
---Результат с плановой ошибкой из-за времени	
---SELECT pg_dms_get_actions(key),pg_dms_get_hash(key),pg_dms_get_status(key) FROM d;	
---Вывод статуса строк
-SELECT
-  pg_dms_get_status (KEY)
-FROM
-  d;
-
---Вывод только действующих документов
-SELECT
-  num,
-  pg_dms_get_status (KEY)
-FROM
-  d
-WHERE
-  pg_dms_is_document (KEY);
-
---Вывод только  документов на дату
---SELECT num, pg_dms_get_status(key) FROM d WHERE pg_dms_is_document(key, now()-'20 milliseconds'::interval);
---Вывод записей одного семейства
-SELECT
-  num,
-  pg_dms_get_status (KEY)
-FROM
-  d
-WHERE
-  pg_dms_is_family (KEY, (
-      SELECT
-        KEY
-      FROM
-        d
-      WHERE
-        num = 1));
-
-SELECT
-  num,
-  pg_dms_get_status (KEY)
-FROM
-  d
-WHERE
-  pg_dms_is_family (KEY, (
-      SELECT
-        key::text
-      FROM
-        d
-      WHERE
-        num = 1));
-
---Вывод последных записей
-SELECT
-  num
-FROM
-  d
-WHERE
-  pg_dms_is_last ('public.d', KEY);
-
-*/

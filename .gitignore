@@ -1,4 +1,6 @@
 pg_dms.o
+pg_dms_family.o
+pg_dms_id.o
 pg_dms.so
 pg_dms-0.0.1-1-x86_64.pkg.tar
 regression.diffs

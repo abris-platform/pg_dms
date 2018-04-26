@@ -18,6 +18,12 @@
         "uuid.h": "c",
         "builtins.h": "c",
         "fmgrprotos.h": "c",
-        "nodes.h": "c"
-    }
+        "nodes.h": "c",
+        "gist.h": "c",
+        "miscadmin.h": "c",
+        "chrono": "c",
+        "timestamp.h": "c",
+        "pg_dms.h": "c"
+    },
+    "C_Cpp.intelliSenseEngineFallback": "Enabled"
 }
