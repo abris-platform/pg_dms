@@ -26,8 +26,9 @@ Datum
 pg_dms_id_in(PG_FUNCTION_ARGS)
 {
     //elog(NOTICE, "pg_dms_id_in(PG_FUNCTION_ARGS)");
-    // ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED), errmsg("%d", sizeof(pg_dms_id))));
     char         *str = PG_GETARG_CSTRING(0);
+    if(strlen(str)!=73)
+      ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED), errmsg("key -%s is invalid", str)));
     pg_dms_id    *result = palloc(sizeof(pg_dms_id));
 
     SET_VARSIZE(result, sizeof(pg_dms_id));

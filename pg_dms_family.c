@@ -161,7 +161,6 @@ static int familyid_cmp (pg_dms_family *a, pg_dms_id *b)
 Datum
 pg_dms_familyid_cmp(PG_FUNCTION_ARGS)
 {
-    elog(NOTICE, "yra1");
     PG_RETURN_INT32(familyid_cmp(PG_GETARG_PGDMSFAMILY_P(0),PG_GETARG_PGDMSID_P(1)));
 };
 Datum

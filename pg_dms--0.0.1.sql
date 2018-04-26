@@ -29,6 +29,19 @@ CREATE TYPE pg_dms_family (
 );
 --
 --
+--    ref
+--
+--
+CREATE FUNCTION pg_dms_ref_in(cstring) RETURNS pg_dms_ref AS 'pg_dms.so'  LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_ref_out(pg_dms_ref)  RETURNS cstring AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
+CREATE TYPE pg_dms_ref (
+   internallength = 32,
+   input = pg_dms_ref_in, output = pg_dms_ref_out,
+   alignment = double
+);
+--
+--
 --    action_t
 --
 --
@@ -74,7 +87,7 @@ CREATE OPERATOR pg_catalog. <= (PROCEDURE = pg_dms_idle, LEFTARG = pg_dms_id, RI
 CREATE OPERATOR pg_catalog. <  (PROCEDURE = pg_dms_idlt, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_id);
 
 CREATE OPERATOR CLASS pg_dms_id DEFAULT FOR TYPE pg_dms_id
-USING btree family pg_dms_ops AS 
+USING btree FAMILY pg_dms_ops AS 
   OPERATOR 1 <,
   OPERATOR 2 <=,
   OPERATOR 3 =,
@@ -152,7 +165,7 @@ CREATE OPERATOR pg_catalog. <= (PROCEDURE = pg_dms_familyle, LEFTARG = pg_dms_fa
 CREATE OPERATOR pg_catalog. <  (PROCEDURE = pg_dms_familylt, LEFTARG = pg_dms_family, RIGHTARG = pg_dms_family);
 
 CREATE OPERATOR class pg_dms_family DEFAULT FOR TYPE pg_dms_family
-USING btree family pg_dms_ops AS 
+USING btree FAMILY pg_dms_ops AS 
   OPERATOR 1 <,
   OPERATOR 2 <=,
   OPERATOR 3 =,
@@ -177,7 +190,7 @@ CREATE OPERATOR pg_catalog.=  (PROCEDURE = pg_dms_idfamilyeq, LEFTARG = pg_dms_i
 CREATE OPERATOR pg_catalog.<= (PROCEDURE = pg_dms_idfamilyle, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_family);
 CREATE OPERATOR pg_catalog.<  (PROCEDURE = pg_dms_idfamilylt, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_family);
 
-ALTER OPERATOR family pg_dms_ops
+ALTER OPERATOR FAMILY pg_dms_ops
 USING btree  ADD 
   OPERATOR 1 <  (pg_dms_id, pg_dms_family),
   OPERATOR 2 <= (pg_dms_id, pg_dms_family),
@@ -203,7 +216,7 @@ CREATE OPERATOR pg_catalog. =  (PROCEDURE = pg_dms_familyideq, LEFTARG = pg_dms_
 CREATE OPERATOR pg_catalog. <= (PROCEDURE = pg_dms_familyidle, LEFTARG = pg_dms_family, RIGHTARG = pg_dms_id);
 CREATE OPERATOR pg_catalog. <  (PROCEDURE = pg_dms_familyidlt, LEFTARG = pg_dms_family, RIGHTARG = pg_dms_id);
 
-ALTER OPERATOR family pg_dms_ops
+ALTER OPERATOR FAMILY pg_dms_ops
 USING btree ADD 
   OPERATOR 1 <  (pg_dms_family, pg_dms_id),
   OPERATOR 2 <= (pg_dms_family, pg_dms_id),
@@ -211,6 +224,84 @@ USING btree ADD
   OPERATOR 4 >= (pg_dms_family, pg_dms_id),
   OPERATOR 5 >  (pg_dms_family, pg_dms_id),
   FUNCTION 1    public.pg_dms_familyid_cmp (pg_dms_family ,pg_dms_id);
+--
+--
+--    ref <-> ref
+--
+--
+CREATE FUNCTION pg_dms_ref_cmp(pg_dms_ref, pg_dms_ref) RETURNS int     AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refgt  (pg_dms_ref, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refge  (pg_dms_ref, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refeq  (pg_dms_ref, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refle  (pg_dms_ref, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_reflt  (pg_dms_ref, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OPERATOR pg_catalog. >  (PROCEDURE = pg_dms_refgt, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog. >= (PROCEDURE = pg_dms_refge, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog. =  (PROCEDURE = pg_dms_refeq, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog. <= (PROCEDURE = pg_dms_refle, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog. <  (PROCEDURE = pg_dms_reflt, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_ref);
+
+CREATE OPERATOR class pg_dms_ref DEFAULT FOR TYPE pg_dms_ref
+USING btree FAMILY pg_dms_ops AS 
+  OPERATOR 1 <,
+  OPERATOR 2 <=,
+  OPERATOR 3 =,
+  OPERATOR 4 >=,
+  OPERATOR 5 >,
+  FUNCTION 1 public.pg_dms_ref_cmp (pg_dms_ref, pg_dms_ref);
+--
+--
+--    id <-> ref
+--
+--
+CREATE FUNCTION pg_dms_idref_cmp(pg_dms_id, pg_dms_ref) RETURNS int     AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_idrefgt  (pg_dms_id, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_idrefge  (pg_dms_id, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_idrefeq  (pg_dms_id, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_idrefle  (pg_dms_id, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_idreflt  (pg_dms_id, pg_dms_ref) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OPERATOR pg_catalog.>  (PROCEDURE = pg_dms_idrefgt, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog.>= (PROCEDURE = pg_dms_idrefge, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog.=  (PROCEDURE = pg_dms_idrefeq, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog.<= (PROCEDURE = pg_dms_idrefle, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_ref);
+CREATE OPERATOR pg_catalog.<  (PROCEDURE = pg_dms_idreflt, LEFTARG = pg_dms_id, RIGHTARG = pg_dms_ref);
+
+ALTER OPERATOR FAMILY pg_dms_ops
+USING btree  ADD 
+  OPERATOR 1 <  (pg_dms_id, pg_dms_ref),
+  OPERATOR 2 <= (pg_dms_id, pg_dms_ref),
+  OPERATOR 3 =  (pg_dms_id, pg_dms_ref),
+  OPERATOR 4 >= (pg_dms_id, pg_dms_ref),
+  OPERATOR 5 >  (pg_dms_id, pg_dms_ref),
+  FUNCTION 1    public.pg_dms_idref_cmp (pg_dms_id, pg_dms_ref);
+--
+--
+--    ref <-> id
+--
+--
+CREATE FUNCTION pg_dms_refid_cmp (pg_dms_ref, pg_dms_id) RETURNS int     AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refidgt   (pg_dms_ref, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refidge   (pg_dms_ref, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refideq   (pg_dms_ref, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refidle   (pg_dms_ref, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_refidlt   (pg_dms_ref, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OPERATOR pg_catalog. >  (PROCEDURE = pg_dms_refidgt, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. >= (PROCEDURE = pg_dms_refidge, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. =  (PROCEDURE = pg_dms_refideq, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. <= (PROCEDURE = pg_dms_refidle, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_id);
+CREATE OPERATOR pg_catalog. <  (PROCEDURE = pg_dms_refidlt, LEFTARG = pg_dms_ref, RIGHTARG = pg_dms_id);
+
+ALTER OPERATOR FAMILY pg_dms_ops
+USING btree ADD 
+  OPERATOR 1 <  (pg_dms_ref, pg_dms_id),
+  OPERATOR 2 <= (pg_dms_ref, pg_dms_id),
+  OPERATOR 3 =  (pg_dms_ref, pg_dms_id),
+  OPERATOR 4 >= (pg_dms_ref, pg_dms_id),
+  OPERATOR 5 >  (pg_dms_ref, pg_dms_id),
+  FUNCTION 1    public.pg_dms_refid_cmp (pg_dms_ref ,pg_dms_id);
 --
 --
 --    id extra

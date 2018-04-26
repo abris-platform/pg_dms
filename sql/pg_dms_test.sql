@@ -104,4 +104,45 @@ INSERT INTO public.family (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4
 --  Просмотр результата вставки
 --
 SELECT * FROM public.family LEFT JOIN  public.directory ON family.directory_key = directory.key;
+--
+--  Создание таблицы в которой есть ссылка на записи в таблице справочника
+--
+CREATE TABLE public.ref (
+  KEY integer NOT NULL,
+  directory_key pg_dms_ref,
+  name text,
+  CONSTRAINT ref_pkey PRIMARY KEY (KEY),
+  CONSTRAINT ref_directory_fkey FOREIGN KEY (directory_key) REFERENCES public.directory (KEY)
+)
+  WITH (OIDS = FALSE) TABLESPACE pg_default;
+--
+--  Добавление записи в таблицу со ссылкий на справочник
+--
+INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf','a1');
+--
+--  Просмотр результата вставки
+--
+SELECT * FROM public.ref LEFT JOIN  public.directory ON ref.directory_key = directory.key;
 
+/*
+Не создается CONSTRAINT 
+ERROR:  foreign key constraint "test_uuid_directory_fkey" cannot be implemented
+DETAIL:  Key columns "directory_key" and "key" are of incompatible types: uuid and pg_dms_id.
+
+CREATE TABLE public.test_uuid (
+  KEY integer NOT NULL,
+  directory_key uuid,
+  name text,
+  CONSTRAINT test_uuid_pkey PRIMARY KEY (KEY),
+  CONSTRAINT test_uuid_directory_fkey FOREIGN KEY (directory_key) REFERENCES public.directory (KEY)
+)
+  WITH (OIDS = FALSE) TABLESPACE pg_default;
+--
+--  Добавление записи в таблицу со ссылкий на справочник
+--
+INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1-993f-f71ba3882796','a1');
+--
+--  Просмотр результата вставки
+--
+SELECT * FROM public.ref LEFT JOIN  public.directory ON ref.directory_key = directory.key;
+*/

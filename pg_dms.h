@@ -8,6 +8,7 @@
 #include "utils/timestamp.h"
 
 #define PG_GETARG_PGDMSID_P(n) ((pg_dms_id *) DatumGetPointer(PG_GETARG_DATUM(n)))
+#define PG_GETARG_PGDMSREF_P(n) ((pg_dms_ref *) DatumGetPointer(PG_GETARG_DATUM(n)))
 #define PG_GETARG_PGDMSFAMILY_P(n) ((pg_dms_family *) DatumGetPointer(PG_GETARG_DATUM(n)))
 #define ACTION_USER_LEN 20
 
@@ -46,5 +47,9 @@ typedef struct pg_dms_family {
     pg_uuid_t   family;
 } pg_dms_family;
 
+typedef struct pg_dms_ref {
+    pg_uuid_t   family;
+    pg_uuid_t   version;
+} pg_dms_ref;
 
 #endif							/* ___PG_DMS__ */
