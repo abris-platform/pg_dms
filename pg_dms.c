@@ -53,15 +53,16 @@ pg_dms_getaction(PG_FUNCTION_ARGS)
     bool typbyval;
     char typalign;
     get_typlenbyvalalign(itemTupleDesc->tdtypeid, &typlen, &typbyval, &typalign);
-    Datum *itemsArrayElements = palloc(sizeof(Datum) * count+1);
-    for(int i=0; i<count; i++){
-        Datum *itemValues = palloc(sizeof(Datum) * 5);
+    Datum *itemsArrayElements = (Datum *)palloc(sizeof(Datum) * count);
+    int i;
+    for(i=0; i<count; i++){
+        Datum *itemValues = (Datum *)palloc(sizeof(Datum) * 5);
         itemValues[0] = DatumGetInt32(id->action[i].type); 
         itemValues[1] = DatumGetObjectId(id->action[i].user);
         itemValues[2] = DatumGetTimestampTz(id->action[i].date);
         itemValues[3] = DatumGetObjectId(id->action[i].reason);
         itemValues[4] = DatumGetUUIDP(&id->action[i].reazon_key);
-        bool *itemNulls = palloc(sizeof(bool) * 5);
+        bool *itemNulls = (bool *)palloc(sizeof(bool) * 5);
         itemNulls[0] = false;
         itemNulls[1] = false;
         itemNulls[2] = false;
