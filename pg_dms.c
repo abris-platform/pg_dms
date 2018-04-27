@@ -24,30 +24,30 @@ PG_MODULE_MAGIC;
 
 //
 //
-//  id <-> status
+//  id -> getstatus
 //
 //
 PG_FUNCTION_INFO_V1(pg_dms_getstatus);
 Datum pg_dms_getstatus(PG_FUNCTION_ARGS) {
-    PG_RETURN_INT32((PG_GETARG_PGDMSID_P(0))->status);
-};
-
-PG_FUNCTION_INFO_V1(pg_dms_setstatus);
-Datum pg_dms_setstatus(PG_FUNCTION_ARGS) {
     pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
-    id->status = PG_GETARG_INT32(1);
-    PG_RETURN_POINTER(id);
+    int count = PG_DMS_ID_ACTION_LENGHT(id);
+    int status = 0;
+    for(int i=0; i< count; i++){
+        if (id->actions[i].type > status) {
+            status = id->actions[i].type;
+        }
+    } 
+    PG_RETURN_INT32(status);
 };
-
 //
 //
-//  id <-> action
+//  id -> getaction
 //
 //
 PG_FUNCTION_INFO_V1(pg_dms_getaction);
 Datum pg_dms_getaction(PG_FUNCTION_ARGS) {
     pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
-    int count = (VARSIZE(id) - sizeof(pg_dms_id)) / sizeof(action_t) + 1;
+    int count = PG_DMS_ID_ACTION_LENGHT(id); 
     TupleDesc itemTupleDesc = BlessTupleDesc(RelationNameGetTupleDesc("pg_dms_action_t"));
     int16 typlen;
     bool typbyval;
@@ -73,7 +73,11 @@ Datum pg_dms_getaction(PG_FUNCTION_ARGS) {
     ArrayType *result = construct_array(itemsArrayElements, count, itemTupleDesc->tdtypeid, typlen, typbyval, typalign);
     PG_RETURN_ARRAYTYPE_P(result);
 };
-
+//
+//
+//  id -> setaction
+//
+//
 PG_FUNCTION_INFO_V1(pg_dms_setaction);
 Datum pg_dms_setaction(PG_FUNCTION_ARGS) {
     pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
@@ -89,7 +93,27 @@ Datum pg_dms_setaction(PG_FUNCTION_ARGS) {
     result->actions[num].reazon_key = *a;
     PG_RETURN_POINTER(result);
 };
-
+//
+//
+//  id -> createversion
+//
+//
+PG_FUNCTION_INFO_V1(pg_dms_createversion);
+Datum pg_dms_createversion(PG_FUNCTION_ARGS) {
+    pg_dms_id *result = palloc(sizeof(pg_dms_id));
+    SET_VARSIZE(result, sizeof(pg_dms_id));
+    result->family = (PG_GETARG_PGDMSID_P(0))->family;
+    result->version = *(PG_GETARG_UUID_P(1));
+    result->actions[0].type = created;
+    result->actions[0].user = GetUserId();
+    result->actions[0].date = GetCurrentTransactionStartTimestamp();
+    PG_RETURN_POINTER(result);
+}
+//
+//
+//  test
+//
+//
 PG_FUNCTION_INFO_V1(pg_dms_test);
 Datum pg_dms_test(PG_FUNCTION_ARGS) {
     HeapTupleHeader tuple = PG_GETARG_HEAPTUPLEHEADER(0);
@@ -155,7 +179,7 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
     ReleaseTupleDesc(tupDesc);
     appendStringInfoString(result, "]");
     pg_dms_id *id = PG_GETARG_PGDMSID_P(1);
-    int count = (VARSIZE(id) - sizeof(pg_dms_id)) / sizeof(action_t) + 1;
+    int count = PG_DMS_ID_ACTION_LENGHT(id);
     appendStringInfoString(result, ", ");
     escape_json(result, "actions");
     appendStringInfoString(result, ": ");

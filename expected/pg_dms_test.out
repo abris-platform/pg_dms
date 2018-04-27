@@ -30,7 +30,13 @@ INSERT INTO public.directory (KEY, num)
 INSERT INTO public.directory (KEY, num)
   VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 6);
 INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff', 7);
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff', 8);
+--
+--  Создание новой версии строки
+--
+INSERT INTO public.directory (KEY, num)
+  VALUES (pg_dms_createversion(('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff')::pg_dms_id,
+          '6e108955-7aff-4a9c-871c-a41fb8006594'::uuid), 7);
 --
 --  Просмотр результата создания таблицы
 --
@@ -41,8 +47,9 @@ SELECT * FROM directory order by key;
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
  ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
-(5 rows)
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+(6 rows)
 
 --
 --  Поиск записей по различным условиям
@@ -52,8 +59,9 @@ SELECT * FROM directory WHERE key > '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a4
 ---------------------------------------------------------------------------+-----
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
  ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
-(3 rows)
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+(4 rows)
 
 SELECT * FROM directory WHERE key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
@@ -61,8 +69,9 @@ SELECT * FROM directory WHERE key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
  ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
-(4 rows)
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+(5 rows)
 
 SELECT * FROM directory WHERE key = '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
                                     key                                    | num 
@@ -84,36 +93,23 @@ SELECT * FROM directory WHERE key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a
 (2 rows)
 
 --
+--  Добавление действия со строкой
+--
+UPDATE directory SET key=pg_dms_setaction(key, 100, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
+--
 --  Получение статуса строки
 --
 SELECT pg_dms_getstatus(key), num FROM directory;
  pg_dms_getstatus | num 
 ------------------+-----
-                0 |   3
                 0 |   4
                 0 |   5
                 0 |   6
+                0 |   8
                 0 |   7
-(5 rows)
+              100 |   3
+(6 rows)
 
---
---  Изменение статуса строки
---
-UPDATE directory SET key=pg_dms_setstatus(key,1) WHERE num = 5;
-SELECT pg_dms_getstatus(key), num FROM directory;
- pg_dms_getstatus | num 
-------------------+-----
-                0 |   3
-                0 |   4
-                0 |   6
-                0 |   7
-                1 |   5
-(5 rows)
-
---
---  Добавление действия со строкой
---
-UPDATE directory SET key=pg_dms_setaction(key, 1, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
 --Закоментировать - возвращается текущая дата
 --SELECT pg_dms_getaction(key), num FROM directory;
 --
@@ -130,10 +126,11 @@ UPDATE directory SET key=pg_dms_setaction(key, 1, (SELECT oid FROM pg_class WHER
 SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid = key;
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
- ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
-(3 rows)
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+(4 rows)
 
 SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid < key;
  key | num 
@@ -143,10 +140,11 @@ SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid < ke
 SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid <= key;
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
- ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
-(3 rows)
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+(4 rows)
 
 SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid > key;
                                     key                                    | num 
@@ -159,19 +157,21 @@ SELECT * FROM directory WHERE  'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid >= k
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
- ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
-(5 rows)
+(6 rows)
 
 SELECT * FROM directory WHERE  key = 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
  ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
-(3 rows)
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+(4 rows)
 
 SELECT * FROM directory WHERE  key < 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
                                     key                                    | num 
@@ -184,11 +184,12 @@ SELECT * FROM directory WHERE  key <= 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uu
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
- ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
-(5 rows)
+(6 rows)
 
 SELECT * FROM directory WHERE  key > 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
  key | num 
@@ -198,10 +199,11 @@ SELECT * FROM directory WHERE  key > 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uui
 SELECT * FROM directory WHERE  key >= 'ae060476-a0c1-4ec1-993f-f71ba3882796'::uuid;
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
- ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
- ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
  ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
-(3 rows)
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+(4 rows)
 
 --
 --  Создание таблицы в которой есть ссылка на семейство записей в таблице справочника
@@ -224,10 +226,11 @@ INSERT INTO public.family (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4
 SELECT * FROM public.family LEFT JOIN  public.directory ON family.directory_key = directory.key;
  key |            directory_key             | name |                                    key                                    | num 
 -----+--------------------------------------+------+---------------------------------------------------------------------------+-----
-   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
-   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   7
    1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
-(3 rows)
+   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+   1 | ae060476-a0c1-4ec1-993f-f71ba3882796 | a1   | ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+(4 rows)
 
 --
 --  Создание таблицы в которой есть ссылка на записи в таблице справочника

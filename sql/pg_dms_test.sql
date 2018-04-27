@@ -31,7 +31,13 @@ INSERT INTO public.directory (KEY, num)
 INSERT INTO public.directory (KEY, num)
   VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 6);
 INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff', 7);
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff', 8);
+--
+--  Создание новой версии строки
+--
+INSERT INTO public.directory (KEY, num)
+  VALUES (pg_dms_createversion(('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff')::pg_dms_id,
+          '6e108955-7aff-4a9c-871c-a41fb8006594'::uuid), 7);
 --
 --  Просмотр результата создания таблицы
 --
@@ -45,18 +51,13 @@ SELECT * FROM directory WHERE key = '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a4
 SELECT * FROM directory WHERE key < '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
 SELECT * FROM directory WHERE key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
 --
+--  Добавление действия со строкой
+--
+UPDATE directory SET key=pg_dms_setaction(key, 100, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
+--
 --  Получение статуса строки
 --
 SELECT pg_dms_getstatus(key), num FROM directory;
---
---  Изменение статуса строки
---
-UPDATE directory SET key=pg_dms_setstatus(key,1) WHERE num = 5;
-SELECT pg_dms_getstatus(key), num FROM directory;
---
---  Добавление действия со строкой
---
-UPDATE directory SET key=pg_dms_setaction(key, 1, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
 
 --Закоментировать - возвращается текущая дата
 --SELECT pg_dms_getaction(key), num FROM directory;

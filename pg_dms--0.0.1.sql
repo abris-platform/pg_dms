@@ -64,10 +64,11 @@ CREATE TABLE public.action_list (
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 
-INSERT INTO public.action_list (KEY, name)  VALUES (0, 'Создано');
-INSERT INTO public.action_list (KEY, name)  VALUES (1, 'Проверено');
-INSERT INTO public.action_list (KEY, name)  VALUES (2, 'Утверждено');
-INSERT INTO public.action_list (KEY, name)  VALUES (3, 'Архивировано');
+INSERT INTO public.action_list (KEY, name)  VALUES (0,   'Создано');
+INSERT INTO public.action_list (KEY, name)  VALUES (100, 'Проверено');
+INSERT INTO public.action_list (KEY, name)  VALUES (200, 'Утверждено');
+INSERT INTO public.action_list (KEY, name)  VALUES (300, 'Архивировано');
+INSERT INTO public.action_list (KEY, name)  VALUES (400, 'Отклонено');
 --
 --
 --    id <-> id
@@ -308,7 +309,6 @@ USING btree ADD
 --
 --
 CREATE FUNCTION pg_dms_getstatus(pg_dms_id)      RETURNS int    AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
-CREATE FUNCTION pg_dms_setstatus(pg_dms_id, int) RETURNS pg_dms_id    AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION pg_dms_getaction(pg_dms_id)      RETURNS pg_dms_action_t[]    AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid)    RETURNS pg_dms_id    AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 --
@@ -318,5 +318,7 @@ CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid)    RETURNS pg_dms_id
 --
 CREATE OR REPLACE FUNCTION public.pg_dms_uuid2id (uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE CAST(uuid AS pg_dms_id) WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS ASSIGNMENT;
+CREATE OR REPLACE FUNCTION public.pg_dms_createversion (pg_dms_id, uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
 
 CREATE OR REPLACE FUNCTION public.pg_dms_test (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
