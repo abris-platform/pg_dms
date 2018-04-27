@@ -32,7 +32,9 @@
         "ratio": "c",
         "type_traits": "c",
         "optional": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "pg_type.h": "c",
+        "json.h": "c"
     },
     "C_Cpp.intelliSenseEngineFallback": "Enabled",
     "C_Cpp.clang_format_path": "/usr/bin/clang-format",

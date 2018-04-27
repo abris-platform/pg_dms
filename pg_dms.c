@@ -4,6 +4,7 @@
 #include "access/tupdesc.h"
 #include "access/xact.h"
 #include "catalog/pg_type.h"
+#include "catalog/pg_namespace.h"
 #include "executor/executor.h"
 #include "fmgr.h"
 #include "funcapi.h"
@@ -82,15 +83,14 @@ PG_FUNCTION_INFO_V1(pg_dms_setaction);
 Datum pg_dms_setaction(PG_FUNCTION_ARGS) {
     pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
     pg_dms_id *result = palloc(VARSIZE(id) + sizeof(action_t));
+    int count = PG_DMS_ID_ACTION_LENGHT(id);
     memcpy(result, id, sizeof(pg_dms_id));
     SET_VARSIZE(result, VARSIZE(id) + sizeof(action_t));
-    int num = (VARSIZE(result) - sizeof(pg_dms_id)) / sizeof(action_t);
-    result->actions[num].type = PG_GETARG_INT32(1);
-    result->actions[num].user = GetUserId();
-    result->actions[num].date = GetCurrentTransactionStartTimestamp();
-    result->actions[num].reason = PG_GETARG_OID(2);
-    pg_uuid_t *a = PG_GETARG_UUID_P(3);
-    result->actions[num].reazon_key = *a;
+    result->actions[count].type = PG_GETARG_INT32(1);
+    result->actions[count].user = GetUserId();
+    result->actions[count].date = GetCurrentTransactionStartTimestamp();
+    result->actions[count].reason = PG_GETARG_OID(2);
+    result->actions[count].reazon_key = *PG_GETARG_UUID_P(3);
     PG_RETURN_POINTER(result);
 };
 //
@@ -122,9 +122,14 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
     TupleDesc tupDesc = lookup_rowtype_tupdesc(tupType, tupTypmod);
     AttInMetadata *attinmeta = TupleDescGetAttInMetadata(tupDesc);
     HeapTuple tableTypeTuple = SearchSysCache1(TYPEOID, ObjectIdGetDatum(tupDesc->tdtypeid));
+    HeapTuple tableTypeNamespaceTuple = SearchSysCache1(NAMESPACEOID, ObjectIdGetDatum(((Form_pg_type) GETSTRUCT(tableTypeTuple))->typnamespace));
     StringInfo result;
     result = makeStringInfo();
     appendStringInfoString(result, "{");
+    escape_json(result, "schema");
+    appendStringInfoString(result, ": ");
+    escape_json(result, NameStr(((Form_pg_namespace) GETSTRUCT(tableTypeNamespaceTuple))->nspname));
+    appendStringInfoString(result, ", ");
     escape_json(result, "table");
     appendStringInfoString(result, ": ");
     escape_json(result, NameStr(((Form_pg_type) GETSTRUCT(tableTypeTuple))->typname));
@@ -133,6 +138,7 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
     appendStringInfoString(result, ": ");
     appendStringInfoString(result, "[");
     ReleaseSysCache(tableTypeTuple);
+    ReleaseSysCache(tableTypeNamespaceTuple);
     for (int i = 0; i < tupDesc->natts; i++) {
         if (TupleDescAttr(tupDesc, i)->attisdropped) {
             continue;
