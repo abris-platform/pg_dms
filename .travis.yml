@@ -1,16 +1,13 @@
 sudo: required
 
 services:
-  - postgresql
-    
-env:
-  global:
-  - PGPORT=5433
+- docker
 
-before_script:
-  - sudo apt-get install postgresql-server-dev-all
-  - sudo apt-get install postgresql-common
-  - sudo /etc/init.d/postgresql restart
-  
+arch:
+  packages:
+  - postgresql
+  script:
+  - makepkg -fci --noconfirm && sudo systemctl restart postgresql.service && env REGRESS_OPTS=--user=postgres make installcheck
+
 script:
- - sudo make install
+- "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
