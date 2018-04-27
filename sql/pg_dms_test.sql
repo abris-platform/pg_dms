@@ -1,6 +1,4 @@
 CREATE EXTENSION pg_dms CASCADE;
-CREATE EXTENSION pg_abris CASCADE;
-
 
 --
 --  Создание таблицы справочник
