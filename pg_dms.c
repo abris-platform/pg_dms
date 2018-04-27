@@ -116,12 +116,10 @@ Datum pg_dms_createversion(PG_FUNCTION_ARGS) {
 //
 PG_FUNCTION_INFO_V1(pg_dms_test);
 Datum pg_dms_test(PG_FUNCTION_ARGS) {
-    HeapTupleHeader tuple = PG_GETARG_HEAPTUPLEHEADER(0);
-    Oid tupType = HeapTupleHeaderGetTypeId(tuple);
-    int32 tupTypmod = HeapTupleHeaderGetTypMod(tuple);
-    TupleDesc tupDesc = lookup_rowtype_tupdesc(tupType, tupTypmod);
-    AttInMetadata *attinmeta = TupleDescGetAttInMetadata(tupDesc);
-    HeapTuple tableTypeTuple = SearchSysCache1(TYPEOID, ObjectIdGetDatum(tupDesc->tdtypeid));
+    HeapTupleHeader recort = PG_GETARG_HEAPTUPLEHEADER(0);
+    Oid recordType = HeapTupleHeaderGetTypeId(recort);
+    TupleDesc recordDesc = lookup_rowtype_tupdesc(recordType, HeapTupleHeaderGetTypMod(recort));
+    HeapTuple tableTypeTuple = SearchSysCache1(TYPEOID, ObjectIdGetDatum(recordDesc->tdtypeid));
     HeapTuple tableTypeNamespaceTuple = SearchSysCache1(NAMESPACEOID, ObjectIdGetDatum(((Form_pg_type) GETSTRUCT(tableTypeTuple))->typnamespace));
     StringInfo result;
     result = makeStringInfo();
@@ -139,20 +137,21 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
     appendStringInfoString(result, "[");
     ReleaseSysCache(tableTypeTuple);
     ReleaseSysCache(tableTypeNamespaceTuple);
-    for (int i = 0; i < tupDesc->natts; i++) {
-        if (TupleDescAttr(tupDesc, i)->attisdropped) {
+    AttInMetadata *attinmeta = TupleDescGetAttInMetadata(recordDesc);
+    for (int i = 0; i < recordDesc->natts; i++) {
+        if (TupleDescAttr(recordDesc, i)->attisdropped) {
             continue;
         }
-        Form_pg_attribute att = TupleDescAttr(tupDesc, i);
+        Form_pg_attribute att = TupleDescAttr(recordDesc, i);
         HeapTuple typeTuple = SearchSysCache1(TYPEOID, ObjectIdGetDatum(att->atttypid));
         char *name = pstrdup(NameStr(((Form_pg_type) GETSTRUCT(typeTuple))->typname));
         HeapTupleData tmptup;
-        tmptup.t_len = HeapTupleHeaderGetDatumLength(tuple);
+        tmptup.t_len = HeapTupleHeaderGetDatumLength(recort);
         ItemPointerSetInvalid(&(tmptup.t_self));
         tmptup.t_tableOid = InvalidOid;
-        tmptup.t_data = tuple;
+        tmptup.t_data = recort;
         bool isNull = false;
-        Datum d = heap_getattr(&tmptup, att->attnum, tupDesc, &isNull);
+        Datum d = heap_getattr(&tmptup, att->attnum, recordDesc, &isNull);
         Oid typoutput;
         bool typIsVarlena;
         getTypeOutputInfo(attinmeta->attioparams[i], &typoutput, &typIsVarlena);
@@ -182,7 +181,7 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
         }
         ReleaseSysCache(typeTuple);
     }
-    ReleaseTupleDesc(tupDesc);
+    ReleaseTupleDesc(recordDesc);
     appendStringInfoString(result, "]");
     pg_dms_id *id = PG_GETARG_PGDMSID_P(1);
     int count = PG_DMS_ID_ACTION_LENGHT(id);
