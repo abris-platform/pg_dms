@@ -147,5 +147,5 @@ INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1
 SELECT * FROM public.ref LEFT JOIN  public.directory ON ref.directory_key = directory.key;
 */
 
-
-select pg_dms_test(directory) from directory;
+-- Закомментировано, потому что возвращается текущее время
+-- select pg_dms_test(directory, key) from directory;

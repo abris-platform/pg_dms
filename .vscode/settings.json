@@ -25,7 +25,14 @@
         "timestamp.h": "c",
         "pg_dms.h": "c",
         "fmgr.h": "c",
-        "typcache.h": "c"
+        "typcache.h": "c",
+        "functional": "c",
+        "istream": "c",
+        "ostream": "c",
+        "ratio": "c",
+        "type_traits": "c",
+        "optional": "c",
+        "system_error": "c"
     },
     "C_Cpp.intelliSenseEngineFallback": "Enabled",
     "C_Cpp.clang_format_path": "/usr/bin/clang-format",

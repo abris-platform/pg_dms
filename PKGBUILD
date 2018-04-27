@@ -11,5 +11,5 @@ options=(debug !strip)
 
 package() {
   cd "$startdir"
-  make DESTDIR="${pkgdir}" CFLAGS="-O3 -g -Wall" install
+  make DESTDIR="${pkgdir}" CFLAGS="-O3 -g -Wall -std=c99" install
 }

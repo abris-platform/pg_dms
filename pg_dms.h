@@ -40,7 +40,7 @@ typedef struct pg_dms_id {
     pg_uuid_t   family;
     pg_uuid_t   version;
     status_t    status;
-    action_t    action[1];
+    action_t    actions[1];
 } pg_dms_id;
 
 typedef struct pg_dms_family {

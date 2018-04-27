@@ -47,7 +47,7 @@ Datum pg_dms_setstatus(PG_FUNCTION_ARGS) {
 PG_FUNCTION_INFO_V1(pg_dms_getaction);
 Datum pg_dms_getaction(PG_FUNCTION_ARGS) {
     pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
-    int count = (VARSIZE(PG_GETARG_PGDMSID_P(0)) - sizeof(pg_dms_id)) / sizeof(action_t) + 1;
+    int count = (VARSIZE(id) - sizeof(pg_dms_id)) / sizeof(action_t) + 1;
     TupleDesc itemTupleDesc = BlessTupleDesc(RelationNameGetTupleDesc("pg_dms_action_t"));
     int16 typlen;
     bool typbyval;
@@ -56,17 +56,17 @@ Datum pg_dms_getaction(PG_FUNCTION_ARGS) {
     Datum *itemsArrayElements = (Datum *) palloc(sizeof(Datum) * count);
     for (int i = 0; i < count; i++) {
         Datum *itemValues = (Datum *) palloc(sizeof(Datum) * 5);
-        itemValues[0] = Int32GetDatum(id->action[i].type);
-        itemValues[1] = ObjectIdGetDatum(id->action[i].user);
-        itemValues[2] = TimestampTzGetDatum(id->action[i].date);
-        itemValues[3] = ObjectIdGetDatum(id->action[i].reason);
-        itemValues[4] = UUIDPGetDatum(&id->action[i].reazon_key);
+        itemValues[0] = Int32GetDatum(id->actions[i].type);
+        itemValues[1] = ObjectIdGetDatum(id->actions[i].user);
+        itemValues[2] = TimestampTzGetDatum(id->actions[i].date);
+        itemValues[3] = ObjectIdGetDatum(id->actions[i].reason);
+        itemValues[4] = UUIDPGetDatum(&id->actions[i].reazon_key);
         bool *itemNulls = (bool *) palloc(sizeof(bool) * 5);
         itemNulls[0] = false;
         itemNulls[1] = false;
         itemNulls[2] = false;
-        itemNulls[3] = id->action[i].reason ? false : true;
-        itemNulls[4] = id->action[i].reason ? false : true;
+        itemNulls[3] = id->actions[i].reason ? false : true;
+        itemNulls[4] = id->actions[i].reason ? false : true;
         HeapTuple itemHeapTuple = heap_form_tuple(itemTupleDesc, itemValues, itemNulls);
         itemsArrayElements[i] = HeapTupleGetDatum(itemHeapTuple);
     }
@@ -81,12 +81,12 @@ Datum pg_dms_setaction(PG_FUNCTION_ARGS) {
     memcpy(result, id, sizeof(pg_dms_id));
     SET_VARSIZE(result, VARSIZE(id) + sizeof(action_t));
     int num = (VARSIZE(result) - sizeof(pg_dms_id)) / sizeof(action_t);
-    result->action[num].type = PG_GETARG_INT32(1);
-    result->action[num].user = GetUserId();
-    result->action[num].date = GetCurrentTransactionStartTimestamp();
-    result->action[num].reason = PG_GETARG_OID(2);
+    result->actions[num].type = PG_GETARG_INT32(1);
+    result->actions[num].user = GetUserId();
+    result->actions[num].date = GetCurrentTransactionStartTimestamp();
+    result->actions[num].reason = PG_GETARG_OID(2);
     pg_uuid_t *a = PG_GETARG_UUID_P(3);
-    result->action[num].reazon_key = *a;
+    result->actions[num].reazon_key = *a;
     PG_RETURN_POINTER(result);
 };
 
@@ -97,10 +97,18 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
     int32 tupTypmod = HeapTupleHeaderGetTypMod(tuple);
     TupleDesc tupDesc = lookup_rowtype_tupdesc(tupType, tupTypmod);
     AttInMetadata *attinmeta = TupleDescGetAttInMetadata(tupDesc);
-    char *result = "";
     HeapTuple tableTypeTuple = SearchSysCache1(TYPEOID, ObjectIdGetDatum(tupDesc->tdtypeid));
+    StringInfo result;
+    result = makeStringInfo();
+    appendStringInfoString(result, "{");
+    escape_json(result, "table");
+    appendStringInfoString(result, ": ");
+    escape_json(result, NameStr(((Form_pg_type) GETSTRUCT(tableTypeTuple))->typname));
+    appendStringInfoString(result, ", ");
+    escape_json(result, "columns");
+    appendStringInfoString(result, ": ");
+    appendStringInfoString(result, "[");
     ReleaseSysCache(tableTypeTuple);
-    result = psprintf("%s", pstrdup(NameStr(((Form_pg_type) GETSTRUCT(tableTypeTuple))->typname)));
     for (int i = 0; i < tupDesc->natts; i++) {
         if (TupleDescAttr(tupDesc, i)->attisdropped) {
             continue;
@@ -118,10 +126,59 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
         Oid typoutput;
         bool typIsVarlena;
         getTypeOutputInfo(attinmeta->attioparams[i], &typoutput, &typIsVarlena);
-        char *value = !isNull ? OidOutputFunctionCall(typoutput, d) : "NULL";
-        result = psprintf("%s %s:%s=%s", result, NameStr(att->attname), name, value);
+        char *value = !isNull ? OidOutputFunctionCall(typoutput, d) : NULL;
+        if (i > 0) {
+            appendStringInfoString(result, ", ");
+        }
+        appendStringInfoString(result, "{");
+        escape_json(result, "name");
+        appendStringInfoString(result, ": ");
+        escape_json(result, NameStr(att->attname));
+        appendStringInfoString(result, ", ");
+        escape_json(result, "type");
+        appendStringInfoString(result, ": ");
+        escape_json(result, name);
+        appendStringInfoString(result, ", ");
+        escape_json(result, "value");
+        appendStringInfoString(result, ": ");
+        if (!isNull) {
+            escape_json(result, value);
+        } else {
+            appendStringInfoString(result, "null");
+        }
+        appendStringInfoString(result, "}");
+        if (!isNull) {
+            pfree(value);
+        }
         ReleaseSysCache(typeTuple);
     }
     ReleaseTupleDesc(tupDesc);
-    PG_RETURN_TEXT_P(cstring_to_text(result));
+    appendStringInfoString(result, "]");
+    pg_dms_id *id = PG_GETARG_PGDMSID_P(1);
+    int count = (VARSIZE(id) - sizeof(pg_dms_id)) / sizeof(action_t) + 1;
+    appendStringInfoString(result, ", ");
+    escape_json(result, "actions");
+    appendStringInfoString(result, ": ");
+    appendStringInfoString(result, "[");
+    for (int i = 0; i < count; i++) {
+        if (i > 0) {
+            appendStringInfoString(result, ", ");
+        }
+        appendStringInfoString(result, "{");
+        escape_json(result, "type");
+        appendStringInfoString(result, ": ");
+        appendStringInfo(result, "%d", id->actions[i].type);
+        appendStringInfoString(result, ", ");
+        escape_json(result, "user");
+        appendStringInfoString(result, ": ");
+        appendStringInfo(result, "%d", id->actions[i].user);
+        appendStringInfoString(result, ", ");
+        escape_json(result, "date");
+        appendStringInfoString(result, ": ");
+        escape_json(result, timestamptz_to_str(id->actions[i].date));
+        appendStringInfoString(result, "}");
+    }
+    appendStringInfoString(result, "]");
+    appendStringInfoString(result, "}");
+    PG_RETURN_TEXT_P(cstring_to_text_with_len(result->data, result->len));
 }
