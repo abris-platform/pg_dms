@@ -60,8 +60,8 @@ PG_FUNCTION_INFO_V1(pg_dms_uuid2id);
 Datum
 pg_dms_uuid2id(PG_FUNCTION_ARGS)
 {
-    pg_uuid_t         *a = PG_GETARG_UUID_P(0);
-    pg_dms_id    *result = palloc(sizeof(pg_dms_id));
+    pg_uuid_t *a = PG_GETARG_UUID_P(0);
+    pg_dms_id *result = palloc(sizeof(pg_dms_id));
 
     SET_VARSIZE(result, sizeof(pg_dms_id));
 

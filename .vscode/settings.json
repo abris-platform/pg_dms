@@ -23,7 +23,11 @@
         "miscadmin.h": "c",
         "chrono": "c",
         "timestamp.h": "c",
-        "pg_dms.h": "c"
+        "pg_dms.h": "c",
+        "fmgr.h": "c",
+        "typcache.h": "c"
     },
-    "C_Cpp.intelliSenseEngineFallback": "Enabled"
+    "C_Cpp.intelliSenseEngineFallback": "Enabled",
+    "C_Cpp.clang_format_path": "/usr/bin/clang-format",
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: LLVM, UseTab: Never, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Attach, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, SpaceAfterCStyleCast: true }"
 }
