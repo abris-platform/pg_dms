@@ -1,6 +1,5 @@
 CREATE EXTENSION pg_dms CASCADE;
 NOTICE:  installing required extension "uuid-ossp"
-CREATE EXTENSION pg_abris CASCADE;
 --
 --  Создание таблицы справочник
 --
