@@ -36,9 +36,9 @@ pg_dms_id_in(PG_FUNCTION_ARGS)
     result->family = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (str, ","))));
     result->version = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (NULL, ","))));
     result->status = project;
-    result->action[0].type = created;
-    result->action[0].user = GetUserId();
-    result->action[0].date = GetCurrentTransactionStartTimestamp();
+    result->actions[0].type = created;
+    result->actions[0].user = GetUserId();
+    result->actions[0].date = GetCurrentTransactionStartTimestamp();
 
     PG_RETURN_POINTER(result);
 }
@@ -68,9 +68,9 @@ pg_dms_uuid2id(PG_FUNCTION_ARGS)
     result->family = *a;
     result->version = *a;
     result->status = project;
-    result->action[0].type = created;
-    result->action[0].user = GetUserId();
-    result->action[0].date = GetCurrentTransactionStartTimestamp();
+    result->actions[0].type = created;
+    result->actions[0].user = GetUserId();
+    result->actions[0].date = GetCurrentTransactionStartTimestamp();
 
     PG_RETURN_POINTER(result);
 }
