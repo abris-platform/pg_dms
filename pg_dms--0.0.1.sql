@@ -321,4 +321,6 @@ CREATE CAST(uuid AS pg_dms_id) WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS A
 CREATE OR REPLACE FUNCTION public.pg_dms_createversion (pg_dms_id, uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 
 
-CREATE OR REPLACE FUNCTION public.pg_dms_test (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_getjson (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION pg_dms_gethash (record, pg_dms_id) RETURNS uuid AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION pg_dms_getstringforhash (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;

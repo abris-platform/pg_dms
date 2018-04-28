@@ -278,5 +278,36 @@ INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1
 --
 SELECT * FROM public.ref LEFT JOIN  public.directory ON ref.directory_key = directory.key;
 */
+--
+--  Расчет JSON
+--
 -- Закомментировано, потому что возвращается текущее время
--- select pg_dms_test(directory, key) from directory;
+--select pg_dms_getjson(directory, key) from directory;
+--
+--  Расчет хеш строк
+--
+select pg_dms_gethash(directory, key) from directory;
+            pg_dms_gethash            
+--------------------------------------
+ aa921482-d2b5-a850-9467-d96fd1ad3e9a
+ 1a2d93fe-ade4-6959-feb6-66c71986b1e9
+ 0851ea1b-7391-e8ae-4a94-f08022b817f0
+ 7279c86f-c980-1f30-497c-ddc5d38e1b54
+ 9919cb5c-1938-e801-4f17-3f55aa69ce45
+ 03be4384-a9ec-be36-45e1-d917066b2ba9
+(6 rows)
+
+--
+--  Расчет строк для хеш 
+--
+select pg_dms_getstringforhash(directory, key) from directory;
+                          pg_dms_getstringforhash                           
+----------------------------------------------------------------------------
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca64
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa86
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb80065947
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a3
+(6 rows)
+

@@ -3,8 +3,9 @@
 #include "access/htup_details.h"
 #include "access/tupdesc.h"
 #include "access/xact.h"
-#include "catalog/pg_type.h"
 #include "catalog/pg_namespace.h"
+#include "catalog/pg_type.h"
+#include "common/md5.h"
 #include "executor/executor.h"
 #include "fmgr.h"
 #include "funcapi.h"
@@ -111,11 +112,11 @@ Datum pg_dms_createversion(PG_FUNCTION_ARGS) {
 }
 //
 //
-//  test
+//  pg_dms_getjson
 //
 //
-PG_FUNCTION_INFO_V1(pg_dms_test);
-Datum pg_dms_test(PG_FUNCTION_ARGS) {
+PG_FUNCTION_INFO_V1(pg_dms_getjson);
+Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
     HeapTupleHeader recort = PG_GETARG_HEAPTUPLEHEADER(0);
     Oid recordType = HeapTupleHeaderGetTypeId(recort);
     TupleDesc recordDesc = lookup_rowtype_tupdesc(recordType, HeapTupleHeaderGetTypMod(recort));
@@ -143,8 +144,8 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
             continue;
         }
         Form_pg_attribute att = TupleDescAttr(recordDesc, i);
-        HeapTuple typeTuple = SearchSysCache1(TYPEOID, ObjectIdGetDatum(att->atttypid));
-        char *name = pstrdup(NameStr(((Form_pg_type) GETSTRUCT(typeTuple))->typname));
+        HeapTuple typecolumn = SearchSysCache1(TYPEOID, ObjectIdGetDatum(att->atttypid));
+        char *name = pstrdup(NameStr(((Form_pg_type) GETSTRUCT(typecolumn))->typname));
         HeapTupleData tmptup;
         tmptup.t_len = HeapTupleHeaderGetDatumLength(recort);
         ItemPointerSetInvalid(&(tmptup.t_self));
@@ -179,7 +180,7 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
         if (!isNull) {
             pfree(value);
         }
-        ReleaseSysCache(typeTuple);
+        ReleaseSysCache(typecolumn);
     }
     ReleaseTupleDesc(recordDesc);
     appendStringInfoString(result, "]");
@@ -209,5 +210,87 @@ Datum pg_dms_test(PG_FUNCTION_ARGS) {
     }
     appendStringInfoString(result, "]");
     appendStringInfoString(result, "}");
+    PG_RETURN_TEXT_P(cstring_to_text_with_len(result->data, result->len));
+}
+//
+//
+//  gethash
+//
+//
+PG_FUNCTION_INFO_V1(pg_dms_gethash);
+Datum pg_dms_gethash(PG_FUNCTION_ARGS) {
+    HeapTupleHeader recort = PG_GETARG_HEAPTUPLEHEADER(0);
+    Oid recordType = HeapTupleHeaderGetTypeId(recort);
+    TupleDesc recordDesc = lookup_rowtype_tupdesc(recordType, HeapTupleHeaderGetTypMod(recort));
+    StringInfo result = makeStringInfo();
+    AttInMetadata *attinmeta = TupleDescGetAttInMetadata(recordDesc);
+    for (int i = 0; i < recordDesc->natts; i++) {
+        if (TupleDescAttr(recordDesc, i)->attisdropped) {
+            continue;
+        }
+        Form_pg_attribute att = TupleDescAttr(recordDesc, i);
+        HeapTupleData tmptup;
+        tmptup.t_len = HeapTupleHeaderGetDatumLength(recort);
+        ItemPointerSetInvalid(&(tmptup.t_self));
+        tmptup.t_tableOid = InvalidOid;
+        tmptup.t_data = recort;
+        bool isNull = false;
+        Oid typoutput;
+        bool typIsVarlena;
+        getTypeOutputInfo(attinmeta->attioparams[i], &typoutput, &typIsVarlena);
+        char *value = !isNull ? OidOutputFunctionCall(typoutput, heap_getattr(&tmptup, att->attnum, recordDesc, &isNull)) : NULL;
+        if (!isNull) {
+            appendStringInfoString(result, value);
+        }
+        if (!isNull) {
+            pfree(value);
+        }
+    }
+    ReleaseTupleDesc(recordDesc);
+
+    pg_uuid_t *hash = palloc(sizeof(pg_uuid_t));
+    pg_md5_binary(result->data, result->len, (char*)hash->data );
+    PG_RETURN_UUID_P(hash);
+    // PG_RETURN_TEXT_P(cstring_to_text_with_len(result->data, result->len));
+}
+//
+//
+//  pg_dms_getstringforhash
+//
+//
+PG_FUNCTION_INFO_V1(pg_dms_getstringforhash);
+Datum pg_dms_getstringforhash(PG_FUNCTION_ARGS) {
+    HeapTupleHeader recort = PG_GETARG_HEAPTUPLEHEADER(0);
+    Oid recordType = HeapTupleHeaderGetTypeId(recort);
+    TupleDesc recordDesc = lookup_rowtype_tupdesc(recordType, HeapTupleHeaderGetTypMod(recort));
+    StringInfo result = makeStringInfo();
+    AttInMetadata *attinmeta = TupleDescGetAttInMetadata(recordDesc);
+    for (int i = 0; i < recordDesc->natts; i++) {
+        if (TupleDescAttr(recordDesc, i)->attisdropped) {
+            continue;
+        }
+        Form_pg_attribute att = TupleDescAttr(recordDesc, i);
+        HeapTupleData tmptup;
+        tmptup.t_len = HeapTupleHeaderGetDatumLength(recort);
+        ItemPointerSetInvalid(&(tmptup.t_self));
+        tmptup.t_tableOid = InvalidOid;
+        tmptup.t_data = recort;
+        bool isNull = false;
+        Oid typoutput;
+        bool typIsVarlena;
+        getTypeOutputInfo(attinmeta->attioparams[i], &typoutput, &typIsVarlena);
+        char *value = !isNull ? OidOutputFunctionCall(typoutput, heap_getattr(&tmptup, att->attnum, recordDesc, &isNull)) : NULL;
+        if (!isNull) {
+            appendStringInfoString(result, value);
+        }
+        if (!isNull) {
+            pfree(value);
+        }
+    }
+    ReleaseTupleDesc(recordDesc);
+
+    // pg_uuid_t *hash = palloc(sizeof(pg_uuid_t));
+    // pg_md5_binary(result->data, result->len, (char*)hash->data );
+    // PG_RETURN_UUID_P(hash);
     PG_RETURN_TEXT_P(cstring_to_text_with_len(result->data, result->len));
 }
