@@ -34,7 +34,8 @@
         "optional": "c",
         "system_error": "c",
         "pg_type.h": "c",
-        "json.h": "c"
+        "json.h": "c",
+        "xact.h": "c"
     },
     "C_Cpp.intelliSenseEngineFallback": "Enabled",
     "C_Cpp.clang_format_path": "/usr/bin/clang-format",

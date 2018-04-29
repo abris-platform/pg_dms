@@ -54,6 +54,7 @@ SELECT * FROM directory WHERE key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a
 --  Добавление действия со строкой
 --
 UPDATE directory SET key=pg_dms_setaction(key, 100, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
+UPDATE directory SET key=pg_dms_setaction(key, 200, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
 --
 --  Получение статуса строки
 --
@@ -66,10 +67,10 @@ SELECT pg_dms_getstatus(key), num FROM directory;
 --
 
 --Закоментировать - возвращается текущая дата
---SELECT a.name, au.rolname, "date", c.relname, reason_key FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
---LEFT JOIN action_list a ON t.type = a.key 
---LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
---LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
+-- SELECT a.name, au.rolname, "date", c.relname, reason_key FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
+-- LEFT JOIN action_list a ON t.type = a.key 
+-- LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
+-- LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
 --
 --  Поиск в таблице по значению uuid
 --
@@ -153,8 +154,25 @@ SELECT * FROM public.ref LEFT JOIN  public.directory ON ref.directory_key = dire
 --
 --  Расчет хеш строк
 --
-select pg_dms_gethash(directory, key) from directory;
+--Закоментировать - возвращается текущая дата
+-- select pg_dms_gethash(directory, key),num from directory;
 --
 --  Расчет строк для хеш 
 --
-select pg_dms_getstringforhash(directory, key) from directory;
+--Закоментировать - возвращается текущая дата
+-- select pg_dms_getstringforhash(directory, key) from directory;
+--
+--  Добавление хеша в ключ 
+--
+UPDATE directory SET key = pg_dms_setHash(directory, key) WHERE num = 3;
+
+--Закоментировать - возвращается текущая дата
+-- SELECT a.name, au.rolname, "date", c.relname, reason_key FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
+-- LEFT JOIN action_list a ON t.type = a.key 
+-- LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
+-- LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
+--
+--  Проверяет хеш 
+--
+--Закоментировать - возвращается текущая дата
+-- select pg_dms_checkhash(directory, key), num from directory;

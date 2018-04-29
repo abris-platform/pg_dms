@@ -69,6 +69,7 @@ INSERT INTO public.action_list (KEY, name)  VALUES (100, 'Проверено');
 INSERT INTO public.action_list (KEY, name)  VALUES (200, 'Утверждено');
 INSERT INTO public.action_list (KEY, name)  VALUES (300, 'Архивировано');
 INSERT INTO public.action_list (KEY, name)  VALUES (400, 'Отклонено');
+INSERT INTO public.action_list (KEY, name)  VALUES (-10, 'Рассчитан хеш');
 --
 --
 --    id <-> id
@@ -318,9 +319,11 @@ CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid)    RETURNS pg_dms_id
 --
 CREATE OR REPLACE FUNCTION public.pg_dms_uuid2id (uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE CAST(uuid AS pg_dms_id) WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS ASSIGNMENT;
-CREATE OR REPLACE FUNCTION public.pg_dms_createversion (pg_dms_id, uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-
+CREATE OR REPLACE FUNCTION public.pg_dms_createVersion (pg_dms_id, uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 
 CREATE OR REPLACE FUNCTION public.pg_dms_getjson (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION pg_dms_gethash (record, pg_dms_id) RETURNS uuid AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION pg_dms_getstringforhash (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION pg_dms_getStringForHash (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION pg_dms_sethash (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION pg_dms_checkhash (record, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
