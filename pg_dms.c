@@ -124,6 +124,7 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
     HeapTuple tableTypeTuple = SearchSysCache1(TYPEOID, ObjectIdGetDatum(recordDesc->tdtypeid));
     HeapTuple tableTypeNamespaceTuple = SearchSysCache1(NAMESPACEOID, ObjectIdGetDatum(((Form_pg_type) GETSTRUCT(tableTypeTuple))->typnamespace));
     StringInfo result;
+    pg_dms_id *id = PG_GETARG_PGDMSID_P(1);
     result = makeStringInfo();
     appendStringInfoString(result, "{");
     escape_json(result, "schema");
@@ -133,6 +134,12 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
     escape_json(result, "table");
     appendStringInfoString(result, ": ");
     escape_json(result, NameStr(((Form_pg_type) GETSTRUCT(tableTypeTuple))->typname));
+    appendStringInfoString(result, ", ");
+    escape_json(result, "key");
+    appendStringInfoString(result, ": ");
+    char *f = DatumGetCString(DirectFunctionCall1(uuid_out, UUIDPGetDatum(&id->family)));
+    char *v = DatumGetCString(DirectFunctionCall1(uuid_out, UUIDPGetDatum(&id->version)));
+    appendStringInfo(result, "\"%s,%s\"", f, v);
     appendStringInfoString(result, ", ");
     escape_json(result, "columns");
     appendStringInfoString(result, ": ");
@@ -185,7 +192,6 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
     }
     ReleaseTupleDesc(recordDesc);
     appendStringInfoString(result, "]");
-    pg_dms_id *id = PG_GETARG_PGDMSID_P(1);
     int count = PG_DMS_ID_ACTIONS_COUNT(id);
     appendStringInfoString(result, ", ");
     escape_json(result, "actions");

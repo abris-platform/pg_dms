@@ -308,3 +308,24 @@ UPDATE directory SET key = pg_dms_setHash(directory, key) WHERE num = 3;
 --
 --Закоментировать - возвращается текущая дата
 -- select pg_dms_checkhash(directory, key), num from directory;
+--
+--  Добавление записи из json 
+--
+select pf_dms_insert_from_json('{"schema": "public", "table": "directory", "key": "f723f29c-5dd3-4a45-a436-dc5076877c11,581c1426-e76a-4654-a23b-b948cd96453b", "columns": [{"name": "key", "type": "pg_dms_id", "value": "f723f29c-5dd3-4a45-a436-dc5076877c11,581c1426-e76a-4654-a23b-b948cd96453b"}, {"name": "num", "type": "int4", "value": "45"}], "actions": [{"type": 0, "user": 10, "date": "2018-04-29 02:47:54.911326-07"}]}'::json);
+ pf_dms_insert_from_json 
+-------------------------
+ t
+(1 row)
+
+SELECT * FROM directory;
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+ ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf |   5
+ ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8 |   6
+ ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff |   8
+ ae060476-a0c1-4ec1-993f-f71ba3882796,6e108955-7aff-4a9c-871c-a41fb8006594 |   7
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+ f723f29c-5dd3-4a45-a436-dc5076877c11,581c1426-e76a-4654-a23b-b948cd96453b |  45
+(7 rows)
+

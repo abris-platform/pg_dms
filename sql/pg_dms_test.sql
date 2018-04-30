@@ -176,3 +176,8 @@ UPDATE directory SET key = pg_dms_setHash(directory, key) WHERE num = 3;
 --
 --Закоментировать - возвращается текущая дата
 -- select pg_dms_checkhash(directory, key), num from directory;
+--
+--  Добавление записи из json 
+--
+select pf_dms_insert_from_json('{"schema": "public", "table": "directory", "key": "f723f29c-5dd3-4a45-a436-dc5076877c11,581c1426-e76a-4654-a23b-b948cd96453b", "columns": [{"name": "key", "type": "pg_dms_id", "value": "f723f29c-5dd3-4a45-a436-dc5076877c11,581c1426-e76a-4654-a23b-b948cd96453b"}, {"name": "num", "type": "int4", "value": "45"}], "actions": [{"type": 0, "user": 10, "date": "2018-04-29 02:47:54.911326-07"}]}'::json);
+SELECT * FROM directory;

@@ -18,6 +18,12 @@
             "label": "Run tests",
             "command": "env REGRESS_OPTS=--user=postgres make installcheck",
             "group": "test"
-        }
+        },
+        {
+            "type": "shell",
+            "label": "Copy resault",
+            "command": "cp results/pg_dms_test.out expected/",
+            "group": "test"
+        }        
     ]
 }

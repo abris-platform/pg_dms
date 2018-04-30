@@ -327,3 +327,17 @@ CREATE OR REPLACE FUNCTION pg_dms_getStringForHash (record, pg_dms_id) RETURNS t
 
 CREATE OR REPLACE FUNCTION pg_dms_sethash (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION pg_dms_checkhash (record, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
+
+CREATE OR REPLACE FUNCTION pf_dms_insert_from_json (d json) RETURNS boolean LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    str text;
+  BEGIN
+    str = 'INSERT INTO ' || (d->>'schema')::text || '.' || (d->>'table')::text || ' ' ||
+      '(' || (SELECT string_agg(concat.concat, ', ') FROM (SELECT "column"->>'name' AS concat FROM json_array_elements(d->'columns') AS "column") AS concat) || ')' || ' ' ||
+      'VALUES (' || (SELECT string_agg(concat.concat, ', ') FROM (SELECT '''' || ("column"->>'value') || '''' AS concat FROM json_array_elements(d->'columns') AS "column") AS concat) || ')';
+    EXECUTE str;
+    RETURN true;
+  END;
+$BODY$;
