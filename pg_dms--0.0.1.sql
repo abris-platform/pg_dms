@@ -70,6 +70,7 @@ INSERT INTO public.action_list (KEY, name)  VALUES (200, 'Утверждено')
 INSERT INTO public.action_list (KEY, name)  VALUES (300, 'Архивировано');
 INSERT INTO public.action_list (KEY, name)  VALUES (400, 'Отклонено');
 INSERT INTO public.action_list (KEY, name)  VALUES (-10, 'Рассчитан хеш');
+INSERT INTO public.action_list (KEY, name)  VALUES (-20, 'ДОбавлено в реестр');
 --
 --
 --    id <-> id
@@ -319,25 +320,72 @@ CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid)    RETURNS pg_dms_id
 --
 CREATE OR REPLACE FUNCTION public.pg_dms_uuid2id (uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE CAST(uuid AS pg_dms_id) WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS ASSIGNMENT;
-CREATE OR REPLACE FUNCTION public.pg_dms_createVersion (pg_dms_id, uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 
-CREATE OR REPLACE FUNCTION public.pg_dms_getjson (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION pg_dms_gethash (record, pg_dms_id) RETURNS uuid AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION pg_dms_getStringForHash (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-
-CREATE OR REPLACE FUNCTION pg_dms_sethash (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION pg_dms_checkhash (record, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-
-
+CREATE OR REPLACE FUNCTION public.pg_dms_createVersion    (pg_dms_id, uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_getjson          (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_gethash          (record, pg_dms_id) RETURNS uuid AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_getStringForHash (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_sethash          (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_checkhash        (record, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+--
+--
+--    record -> json
+--
+--
 CREATE OR REPLACE FUNCTION pf_dms_insert_from_json (d json) RETURNS boolean LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
     str text;
   BEGIN
-    str = 'INSERT INTO ' || (d->>'schema')::text || '.' || (d->>'table')::text || ' ' ||
-      '(' || (SELECT string_agg(concat.concat, ', ') FROM (SELECT "column"->>'name' AS concat FROM json_array_elements(d->'columns') AS "column") AS concat) || ')' || ' ' ||
+    str = 'INSERT INTO ' || (d->>'schema')::text || '.' || (d->>'table')::text || 
+      ' (' || (SELECT string_agg(concat.concat, ', ') FROM (SELECT "column"->>'name' AS concat FROM json_array_elements(d->'columns') AS "column") AS concat) || ') ' ||
       'VALUES (' || (SELECT string_agg(concat.concat, ', ') FROM (SELECT '''' || ("column"->>'value') || '''' AS concat FROM json_array_elements(d->'columns') AS "column") AS concat) || ')';
     EXECUTE str;
     RETURN true;
   END;
 $BODY$;
+--
+--
+--    register
+--
+--
+CREATE TABLE public.register (
+  "key" uuid NOT NULL DEFAULT uuid_generate_v4(),
+  "data" json,
+  "inserted" TimestampTz DEFAULT now(),
+  "status" integer DEFAULT 0,
+  "ex_key" uuid DEFAULT NULL,
+  "ex_inserted" TimestampTz DEFAULT NULL,
+  CONSTRAINT register_pkey PRIMARY KEY (KEY)
+)
+WITH (OIDS = FALSE) TABLESPACE pg_default;
+--
+--
+--    record -> register
+--
+--
+CREATE OR REPLACE FUNCTION pf_dms_insert_to_register (schema_name text, table_name text, column_key text, key pg_dms_id) 
+RETURNS boolean LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    str text;
+    data json;
+    result uuid;
+  BEGIN
+    str = 'SELECT pg_dms_getjson (' || table_name || ', ' || column_key || ') FROM ' || 
+       schema_name || '.' || table_name || ' WHERE ' || column_key || '=''' || key ||'''';
+    EXECUTE str INTO data;
+
+    str = 'INSERT INTO public.register (data) VALUES (''' || data || '''::json ) RETURNING key';
+    EXECUTE str INTO result; 
+
+    str = 'UPDATE ' || schema_name || '.' || table_name || ' SET '|| column_key ||
+      ' = pg_dms_setaction(key, -20, ' || (SELECT oid FROM pg_class WHERE relname = 'register' LIMIT 1) || ', ''' || result || ''')'|| 
+      ' WHERE ' || column_key || '=''' || key ||'''';
+    EXECUTE str;
+
+    RETURN true;
+  END;
+$BODY$;
+
+
