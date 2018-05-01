@@ -190,3 +190,11 @@ SELECT a.name, au.rolname, c.relname FROM unnest((SELECT pg_dms_getaction(key) F
   LEFT JOIN action_list a ON t.type = a.key 
   LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
   LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
+
+
+UPDATE public.register SET status=1, ex_key='e0a0c1db-a4a0-4991-bdb4-f1f8ccf3df08', ex_inserted=now();
+SELECT count(*) FROM public.register;
+SELECT a.name, au.rolname, c.relname FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
+  LEFT JOIN action_list a ON t.type = a.key 
+  LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
+  LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;

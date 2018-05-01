@@ -70,7 +70,8 @@ INSERT INTO public.action_list (KEY, name)  VALUES (200, 'Утверждено')
 INSERT INTO public.action_list (KEY, name)  VALUES (300, 'Архивировано');
 INSERT INTO public.action_list (KEY, name)  VALUES (400, 'Отклонено');
 INSERT INTO public.action_list (KEY, name)  VALUES (-10, 'Рассчитан хеш');
-INSERT INTO public.action_list (KEY, name)  VALUES (-20, 'ДОбавлено в реестр');
+INSERT INTO public.action_list (KEY, name)  VALUES (-20, 'Направлено в реестр');
+INSERT INTO public.action_list (KEY, name)  VALUES (-30, 'Добавлено в реестр');
 --
 --
 --    id <-> id
@@ -352,6 +353,10 @@ $BODY$;
 CREATE TABLE public.register (
   "key" uuid NOT NULL DEFAULT uuid_generate_v4(),
   "data" json,
+  "schema_name" text,
+  "table_name" text,
+  "column_key" text,
+  "value_key" text,
   "inserted" TimestampTz DEFAULT now(),
   "status" integer DEFAULT 0,
   "ex_key" uuid DEFAULT NULL,
@@ -376,7 +381,8 @@ $BODY$
        schema_name || '.' || table_name || ' WHERE ' || column_key || '=''' || key ||'''';
     EXECUTE str INTO data;
 
-    str = 'INSERT INTO public.register (data) VALUES (''' || data || '''::json ) RETURNING key';
+    str = 'INSERT INTO public.register (data, schema_name, table_name, column_key, value_key) VALUES (''' || 
+      data || '''::json, ''' || schema_name || ''', ''' || table_name || ''', ''' || column_key || ''', ''' || key || ''') RETURNING key';
     EXECUTE str INTO result; 
 
     str = 'UPDATE ' || schema_name || '.' || table_name || ' SET '|| column_key ||
@@ -387,5 +393,31 @@ $BODY$
     RETURN true;
   END;
 $BODY$;
+--
+--
+--    update record 
+--
+--
+CREATE OR REPLACE FUNCTION register_update_tf () 
+RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    str text;
+  BEGIN
+    str = 'UPDATE ' || new.schema_name || '.' || new.table_name || ' SET '|| new.column_key ||
+      ' = pg_dms_setaction(key, -30, ' || (SELECT oid FROM pg_class WHERE relname = 'register' LIMIT 1) || ', ''' || new.ex_key || ''')'|| 
+      ' WHERE ' || new.column_key || '=''' || new.value_key ||'''';
+    EXECUTE str;
+
+    RETURN new;
+  END;
+$BODY$;
+
+CREATE TRIGGER rigister_update_tr
+    AFTER UPDATE 
+    ON public.register
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.register_update_tf();
+
 
 
