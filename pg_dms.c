@@ -106,7 +106,7 @@ Datum pg_dms_createversion(PG_FUNCTION_ARGS) {
     SET_VARSIZE(result, sizeof(pg_dms_id));
     result->family = (PG_GETARG_PGDMSID_P(0))->family;
     result->version = *(PG_GETARG_UUID_P(1));
-    result->actions[0].type = created;
+    result->actions[0].type = ACTION_CREATED;
     result->actions[0].user = GetUserId();
     result->actions[0].date = GetCurrentTransactionStartTimestamp();
     PG_RETURN_POINTER(result);
@@ -297,7 +297,7 @@ Datum pg_dms_gethash(PG_FUNCTION_ARGS) {
 bool findHash(pg_dms_id *id, unsigned char **hash) {
     int count = PG_DMS_ID_ACTIONS_COUNT(id);
     for (int i = 0; i < count; i++) {
-        if (id->actions[i].type == calculedHach) {
+        if (id->actions[i].type == ACTION_CALCULETED_HACH) {
             *hash = id->actions[i].reazon_key.data;
             return true;
         }
@@ -321,10 +321,10 @@ Datum pg_dms_sethash(PG_FUNCTION_ARGS) {
     int count = PG_DMS_ID_ACTIONS_COUNT(id);
     memcpy(result, id, PG_DMS_ID_LENGTH(count));
     SET_VARSIZE(result, VARSIZE(id) + sizeof(action_t));
-    result->actions[count].type = calculedHach;
+    result->actions[count].type = ACTION_CALCULETED_HACH;
     result->actions[count].user = GetUserId();
     result->actions[count].date = GetCurrentTransactionStartTimestamp();
-    result->actions[count].reason = calculedHach;
+    result->actions[count].reason = 0;
     pg_md5_binary(str.data, str.len, (char *) result->actions[count].reazon_key.data);
 
     PG_RETURN_POINTER(result);
@@ -354,3 +354,25 @@ Datum pg_dms_checkhash(PG_FUNCTION_ARGS) {
     }
     PG_RETURN_BOOL(false);
 }
+//
+//
+//  id -> get_status_rigister
+//
+//
+PG_FUNCTION_INFO_V1(get_status_rigister);
+Datum get_status_rigister(PG_FUNCTION_ARGS) {
+    pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
+    int count = PG_DMS_ID_ACTIONS_COUNT(id);
+    int status = 0;
+    for (int i = count-1; i >=0; i--) {
+        if (id->actions[i].type == ACTION_ANSWER_RESPONSE) {
+            status = 1;
+            break;
+        }
+        if (id->actions[i].type == ACTION_SEND_REJISTER) {
+            status = -1;
+            break;
+        }
+    }
+    PG_RETURN_INT32(status);
+};
