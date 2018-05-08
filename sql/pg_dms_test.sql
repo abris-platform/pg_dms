@@ -199,19 +199,16 @@ SELECT get_status_rigister(key), num FROM  directory;
 
 
 
-SELECT pf_dms_create_file();
-
-SELECT * FROM  public.register_file;
-
-SELECT pf_dms_save_file((select key from register_file),  (select file from register_file), '75e56803-cb7e-4fcd-9767-ff6807774e4d');
-
-SELECT * from public.global_register_file;
+SELECT pf_dms_save_file(pf_dms_create_file(),  '192.168.100.128');
 
 SELECT * FROM public.global_register;
 
+SELECT response_file, local_db from public.global_register_file WHERE status = 0;
 
 
-UPDATE public.register SET status=1, ex_key='e0a0c1db-a4a0-4991-bdb4-f1f8ccf3df08', ex_inserted=now();
+
+
+UPDATE public.register SET status=1, num_register='e0a0c1db-a4a0-4991-bdb4-f1f8ccf3df08', ex_inserted=now();
 SELECT count(*) FROM public.register;
 SELECT a.name, au.rolname, c.relname FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
   LEFT JOIN action_list a ON t.type = a.key 

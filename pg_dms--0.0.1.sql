@@ -360,7 +360,7 @@ CREATE TABLE public.register (
   "value_key" text,
   "inserted" TimestampTz DEFAULT now(),
   "status" integer DEFAULT 0,
-  "ex_key" uuid DEFAULT NULL,
+  "num_register" uuid DEFAULT NULL,
   "ex_inserted" TimestampTz DEFAULT NULL,
   CONSTRAINT register_pkey PRIMARY KEY (KEY)
 )
@@ -406,14 +406,13 @@ $BODY$
     str text;
   BEGIN
     str = 'UPDATE ' || new.schema_name || '.' || new.table_name || ' SET '|| new.column_key ||
-      ' = pg_dms_setaction(key, -30, ' || (SELECT oid FROM pg_class WHERE relname = 'register' LIMIT 1) || ', ''' || new.ex_key || ''')'|| 
+      ' = pg_dms_setaction(key, -30, ' || (SELECT oid FROM pg_class WHERE relname = 'register' LIMIT 1) || ', ''' || new.num_register || ''')'|| 
       ' WHERE ' || new.column_key || '=''' || new.value_key ||'''';
     EXECUTE str;
-
     RETURN new;
   END;
 $BODY$;
-
+--
 CREATE TRIGGER rigister_update_tr
     AFTER UPDATE 
     ON public.register
@@ -428,6 +427,7 @@ CREATE TABLE public.register_file (
   "key" uuid NOT NULL DEFAULT uuid_generate_v4(),
   "file" json,
   "inserted" TimestampTz DEFAULT now(),
+  "response_file" json,
   "status" integer DEFAULT 0,
   CONSTRAINT register_file_pkey PRIMARY KEY (KEY)
 )
@@ -438,14 +438,15 @@ WITH (OIDS = FALSE) TABLESPACE pg_default;
 --
 --
 CREATE OR REPLACE FUNCTION pf_dms_create_file  () 
-RETURNS boolean LANGUAGE 'plpgsql' AS 
+RETURNS json LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
-    data json;
+    ret json;
   BEGIN
-    INSERT INTO public.register_file (file, inserted, status) VALUES (
-      (select  jsonb_object_agg('records', (select jsonb_agg(json_build_object('local_key',r.key,'data',r.data)) from register  r where r.status = 0))), now(), 0 ); 
-    RETURN true;
+    INSERT INTO public.register_file (file) 
+      VALUES ((SELECT jsonb_agg( json_build_object('local_key', r.key, 'data', r.data)) FROM register r where r.status = 0))
+      RETURNING json_build_object('key_file', key, 'records', file) INTO ret; 
+    RETURN ret;
   END;
 $BODY$;
 --
@@ -455,11 +456,11 @@ $BODY$;
 --
 CREATE TABLE public.global_register_file (
   "key_file" uuid NOT NULL DEFAULT uuid_generate_v4(),
-  "ex_database" uuid,
-  "ex_key" uuid,
-  "ex_file" json,
+  "local_db" inet,
+  "local_key" uuid,
+  "local_file" json,
   "inserted" TimestampTz DEFAULT now(),
-  "out_file" json,
+  "response_file" json,
   "status" integer DEFAULT 0,
   CONSTRAINT global_register_file_pkey PRIMARY KEY (key_file)
 )
@@ -475,19 +476,19 @@ $BODY$
   DECLARE
     str json;
   BEGIN
-    WITH inserted(num, local_key) AS (
-      INSERT INTO public.global_register (local_key, table_name, schema_name, data, database)
-        SELECT (record->>'local_key')::uuid as local_key, 
+    WITH inserted(num_register, local_key) AS (
+      INSERT INTO public.global_register (local_key, table_name, schema_name, data, local_db)
+        SELECT (record->>'local_key')::uuid AS local_key, 
                 record->'data'->>'table' AS table_name, 
                 record->'data'->>'schema' AS schema_name, 
                 record->'data' AS data,
-                new.ex_database AS database
-          FROM (SELECT json_array_elements(ex_file->'records') AS record FROM public.global_register_file WHERE status = 0) AS record
-        RETURNING num, local_key
+                new.local_db AS local_db
+          FROM (SELECT json_array_elements(local_file->'records') AS record FROM public.global_register_file WHERE status = 0) AS record
+        RETURNING num_register, local_key
     )
-    SELECT json_build_object('record',jsonb_agg(json_build_object('local_key',local_key,'num',num))) FROM inserted INTO new.out_file;
+    SELECT jsonb_agg(json_build_object('local_key',local_key,'num_register',num_register)) FROM inserted INTO str;
 
-    UPDATE public.global_register_file SET out_file = new.out_file;
+    UPDATE public.global_register_file SET response_file = json_build_object('local_file',new.local_key, 'record', str);
     RETURN new;
   END;
 $BODY$;
@@ -502,14 +503,12 @@ CREATE TRIGGER global_register_file_insert_tr
 --    save_file record_out 
 --
 --
-CREATE OR REPLACE FUNCTION pf_dms_save_file  (_ex_key uuid, _ex_file json, _database uuid) 
+CREATE OR REPLACE FUNCTION pf_dms_save_file  (_ex_file json, _database inet) 
 RETURNS boolean LANGUAGE 'plpgsql' AS 
 $BODY$
-  DECLARE
-    key uuid;
   BEGIN
-    INSERT INTO public.global_register_file (ex_key, ex_file, ex_database, inserted, status) VALUES (
-      _ex_key, _ex_file, _database,  now(), 0 ) RETURNING key_file INTO key; 
+    INSERT INTO public.global_register_file (local_key, local_file, local_db) 
+      VALUES ((_ex_file->>'key_file')::uuid, _ex_file,  _database);
     RETURN true;
   END;
 $BODY$;
@@ -520,16 +519,16 @@ $BODY$;
 --
 CREATE SEQUENCE public.global_register_seq;
 CREATE TABLE public.global_register (
-  "num" integer NOT NULL DEFAULT nextval('global_register_seq'::regclass),
+  "num_register" integer NOT NULL DEFAULT nextval('global_register_seq'::regclass),
   "salt" uuid,
   "hash-block" uuid,
   "data" json,
   "local_key" uuid,
-  "database" uuid,
+  "local_db" inet,
   "schema_name" text,
   "table_name" text,
   "inserted" TimestampTz DEFAULT now(),
-  CONSTRAINT global_register_pkey PRIMARY KEY ("num")
+  CONSTRAINT global_register_pkey PRIMARY KEY ("num_register")
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 INSERT INTO public.global_register ("hash-block") VALUES('c60bf311-445a-40a4-9b4b-32e308789e66');
@@ -544,7 +543,7 @@ $BODY$
   DECLARE
     prev_hash uuid;
   BEGIN
-    SELECT "hash-block" FROM public.global_register WHERE num = (new.num -1) INTO prev_hash;
+    SELECT "hash-block" FROM public.global_register WHERE num_register = (new.num_register -1) INTO prev_hash;
     LOOP
       new.salt = uuid_generate_v4();
       new."hash-block" = md5(new.data::text || prev_hash::text || new.salt::text ); 
