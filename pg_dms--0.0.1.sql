@@ -322,12 +322,13 @@ CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid)    RETURNS pg_dms_id
 CREATE OR REPLACE FUNCTION public.pg_dms_uuid2id (uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE CAST(uuid AS pg_dms_id) WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS ASSIGNMENT;
 
-CREATE OR REPLACE FUNCTION public.pg_dms_createVersion    (pg_dms_id, uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_createVersion    (pg_dms_id, uuid)   RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_getjson          (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_gethash          (record, pg_dms_id) RETURNS uuid AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_getStringForHash (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_sethash          (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_checkhash        (record, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.get_status_rigister     (pg_dms_id)         RETURNS integer AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 --
 --
 --    record -> json
@@ -418,6 +419,143 @@ CREATE TRIGGER rigister_update_tr
     ON public.register
     FOR EACH ROW
     EXECUTE PROCEDURE public.register_update_tf();
+--
+--
+--    register_file
+--
+--
+CREATE TABLE public.register_file (
+  "key" uuid NOT NULL DEFAULT uuid_generate_v4(),
+  "file" json,
+  "inserted" TimestampTz DEFAULT now(),
+  "status" integer DEFAULT 0,
+  CONSTRAINT register_file_pkey PRIMARY KEY (KEY)
+)
+WITH (OIDS = FALSE) TABLESPACE pg_default;
+--
+--
+--    create_file record_out 
+--
+--
+CREATE OR REPLACE FUNCTION pf_dms_create_file  () 
+RETURNS boolean LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    data json;
+  BEGIN
+    INSERT INTO public.register_file (file, inserted, status) VALUES (
+      (select  jsonb_object_agg('records', (select jsonb_agg(json_build_object('local_key',r.key,'data',r.data)) from register  r where r.status = 0))), now(), 0 ); 
+    RETURN true;
+  END;
+$BODY$;
+--
+--
+--    global_register_file
+--
+--
+CREATE TABLE public.global_register_file (
+  "key_file" uuid NOT NULL DEFAULT uuid_generate_v4(),
+  "ex_database" uuid,
+  "ex_key" uuid,
+  "ex_file" json,
+  "inserted" TimestampTz DEFAULT now(),
+  "out_file" json,
+  "status" integer DEFAULT 0,
+  CONSTRAINT global_register_file_pkey PRIMARY KEY (key_file)
+)
+WITH (OIDS = FALSE) TABLESPACE pg_default;
+--
+--
+--    global_register_file_insert 
+--
+--
+CREATE OR REPLACE FUNCTION global_register_file_insert_tf () 
+RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    str json;
+  BEGIN
+    WITH inserted(num, local_key) AS (
+      INSERT INTO public.global_register (local_key, table_name, schema_name, data, database)
+        SELECT (record->>'local_key')::uuid as local_key, 
+                record->'data'->>'table' AS table_name, 
+                record->'data'->>'schema' AS schema_name, 
+                record->'data' AS data,
+                new.ex_database AS database
+          FROM (SELECT json_array_elements(ex_file->'records') AS record FROM public.global_register_file WHERE status = 0) AS record
+        RETURNING num, local_key
+    )
+    SELECT json_build_object('record',jsonb_agg(json_build_object('local_key',local_key,'num',num))) FROM inserted INTO new.out_file;
 
+    UPDATE public.global_register_file SET out_file = new.out_file;
+    RETURN new;
+  END;
+$BODY$;
+--
+CREATE TRIGGER global_register_file_insert_tr
+    AFTER INSERT 
+    ON public.global_register_file
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.global_register_file_insert_tf();
+--
+--
+--    save_file record_out 
+--
+--
+CREATE OR REPLACE FUNCTION pf_dms_save_file  (_ex_key uuid, _ex_file json, _database uuid) 
+RETURNS boolean LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    key uuid;
+  BEGIN
+    INSERT INTO public.global_register_file (ex_key, ex_file, ex_database, inserted, status) VALUES (
+      _ex_key, _ex_file, _database,  now(), 0 ) RETURNING key_file INTO key; 
+    RETURN true;
+  END;
+$BODY$;
+--
+--
+--    global_register 
+--
+--
+CREATE SEQUENCE public.global_register_seq;
+CREATE TABLE public.global_register (
+  "num" integer NOT NULL DEFAULT nextval('global_register_seq'::regclass),
+  "salt" uuid,
+  "hash-block" uuid,
+  "data" json,
+  "local_key" uuid,
+  "database" uuid,
+  "schema_name" text,
+  "table_name" text,
+  "inserted" TimestampTz DEFAULT now(),
+  CONSTRAINT global_register_pkey PRIMARY KEY ("num")
+)
+WITH (OIDS = FALSE) TABLESPACE pg_default;
+INSERT INTO public.global_register ("hash-block") VALUES('c60bf311-445a-40a4-9b4b-32e308789e66');
+--
+--
+--    global_register 
+--
+--
+CREATE OR REPLACE FUNCTION global_register_tf () 
+RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    prev_hash uuid;
+  BEGIN
+    SELECT "hash-block" FROM public.global_register WHERE num = (new.num -1) INTO prev_hash;
+    LOOP
+      new.salt = uuid_generate_v4();
+      new."hash-block" = md5(new.data::text || prev_hash::text || new.salt::text ); 
+      EXIT  WHEN substring(new."hash-block"::text,1,3) = '000';
+    END LOOP;
+    RETURN new;
+  END;
+$BODY$;
 
-
+CREATE TRIGGER global_register_tr
+    BEFORE INSERT 
+    ON public.global_register
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.global_register_tf();

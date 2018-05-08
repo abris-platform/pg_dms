@@ -153,7 +153,7 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
         }
         Form_pg_attribute att = TupleDescAttr(recordDesc, i);
         HeapTuple typecolumn = SearchSysCache1(TYPEOID, ObjectIdGetDatum(att->atttypid));
-        char *name = pstrdup(NameStr(((Form_pg_type) GETSTRUCT(typecolumn))->typname));
+        char *type_str = pstrdup(NameStr(((Form_pg_type) GETSTRUCT(typecolumn))->typname));
         HeapTupleData tmptup;
         tmptup.t_len = HeapTupleHeaderGetDatumLength(record);
         ItemPointerSetInvalid(&(tmptup.t_self));
@@ -175,7 +175,7 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
         appendStringInfoString(result, ", ");
         escape_json(result, "type");
         appendStringInfoString(result, ": ");
-        escape_json(result, name);
+        escape_json(result, type_str);
         appendStringInfoString(result, ", ");
         escape_json(result, "value");
         appendStringInfoString(result, ": ");
@@ -198,6 +198,7 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
     appendStringInfoString(result, ": ");
     appendStringInfoString(result, "[");
     for (int i = 0; i < count; i++) {
+        if(id->actions[i].type < 0) continue;
         if (i > 0) {
             appendStringInfoString(result, ", ");
         }

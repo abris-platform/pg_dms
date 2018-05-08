@@ -16,12 +16,14 @@
 #define PG_DMS_ID_LENGTH(count) (sizeof(pg_dms_id) + ((count) -1) * sizeof(action_t))
 
 typedef enum ACTION_TYPE {
-    created = 0,
-    agreed = 100,
-    approved = 200,
-    rejected = 300,
-    disposed = 400,
-    calculedHach = -10
+    ACTION_CREATED = 0,
+    ACTION_AGREED = 100,
+    ACTION_APPROVED = 200,
+    ACTION_REJECTED = 300,
+    ACTION_DISPOSED = 400,
+    ACTION_CALCULETED_HACH = -10,
+    ACTION_SEND_REJISTER = -20,
+    ACTION_ANSWER_RESPONSE = -30
 } actiontype_t;
 
 typedef struct {
