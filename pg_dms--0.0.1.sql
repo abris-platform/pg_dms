@@ -434,6 +434,33 @@ CREATE TABLE public.register_file (
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 --
 --
+--    register_file_update 
+--
+--
+CREATE OR REPLACE FUNCTION register_file_update_tf () 
+RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    str json;
+    x json;
+  BEGIN
+    IF new.response_file IS NOT NULL THEN
+      FOR x IN SELECT * FROM json_array_elements(new.response_file)
+      LOOP
+        UPDATE public.register SET status=1, num_register=lpad(x->>'num_register', 32, '0')::uuid WHERE key = (x->>'local_key')::uuid;
+      END LOOP;
+    END IF;
+    RETURN new;
+  END;
+$BODY$;
+--
+CREATE TRIGGER register_file_update_tr
+    AFTER UPDATE 
+    ON public.register_file
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.register_file_update_tf();
+--
+--
 --    create_file record_out 
 --
 --
@@ -447,6 +474,21 @@ $BODY$
       VALUES ((SELECT jsonb_agg( json_build_object('local_key', r.key, 'data', r.data)) FROM register r where r.status = 0))
       RETURNING json_build_object('key_file', key, 'records', file) INTO ret; 
     RETURN ret;
+  END;
+$BODY$;
+--
+--
+--    save response 
+--
+--
+CREATE OR REPLACE FUNCTION pf_dms_save_response  (resp json) 
+RETURNS boolean LANGUAGE 'plpgsql' AS 
+$BODY$
+  DECLARE
+    ret json;
+  BEGIN
+    UPDATE public.register_file SET response_file = (resp->>'records')::json WHERE key =  (resp->>'local_file')::uuid;
+    RETURN true;
   END;
 $BODY$;
 --
@@ -488,7 +530,7 @@ $BODY$
     )
     SELECT jsonb_agg(json_build_object('local_key',local_key,'num_register',num_register)) FROM inserted INTO str;
 
-    UPDATE public.global_register_file SET response_file = json_build_object('local_file',new.local_key, 'record', str);
+    UPDATE public.global_register_file SET response_file = json_build_object('local_file',new.local_key, 'records', str);
     RETURN new;
   END;
 $BODY$;

@@ -198,19 +198,42 @@ SELECT get_status_rigister(key), num FROM  directory;
 
 
 
-
+-- 
+--  Функция pf_dms_create_file 
+--    1. Группирует записи из локолного реестра в файл в виде json. 
+--    2. Сохраняет файл в таблице public.register_file
+--    3. Возврящает его для передачи  
+--
+-- 
+--  Функция pf_dms_save_file сохраняет полученный файл в таблице public.global_register_file,
+--       где он обрабатывается триггерами   
+--  '192.168.100.128' - адрес ресурса с которого получен файл.
+--
 SELECT pf_dms_save_file(pf_dms_create_file(),  '192.168.100.128');
 
-SELECT * FROM public.global_register;
+--  Просмотр глобального реестра 
+SELECT  /*num_register, salt, hash-block, data, local_key,*/ local_db, schema_name, table_name 
+  FROM public.global_register;
 
-SELECT response_file, local_db from public.global_register_file WHERE status = 0;
+--
+--  Выходной файд и адрес куда его необходимо направить
+--
+SELECT /*response_file,*/ local_db from public.global_register_file WHERE status = 0;
+-- 
+--  Функция pf_dms_save_file сохраняет полученный файл в таблице public.global_register_file,
+--       где он обрабатывается триггерами   
+--  '192.168.100.128' - адрес ресурса с которого получен файл.
 
+-- 
+--  Функция pf_dms_save_response сохраняет полученный файл в таблице public.register_file,
+--       где он обрабатывается триггерами   
+--
+SELECT pf_dms_save_response((SELECT response_file from public.global_register_file WHERE status = 0));
 
+--  Просмотр локальног реестра 
+SELECT schema_name, table_name, column_key, status, num_register  FROM public.register;
 
-
-UPDATE public.register SET status=1, num_register='e0a0c1db-a4a0-4991-bdb4-f1f8ccf3df08', ex_inserted=now();
-SELECT count(*) FROM public.register;
-SELECT a.name, au.rolname, c.relname FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
+SELECT a.name, au.rolname, c.relname /*, t.reason_key, t.date*/ FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
   LEFT JOIN action_list a ON t.type = a.key 
   LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
   LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;

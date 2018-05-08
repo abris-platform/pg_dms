@@ -371,34 +371,65 @@ SELECT get_status_rigister(key), num FROM  directory;
                   -1 |   3
 (7 rows)
 
+-- 
+--  Функция pf_dms_create_file 
+--    1. Группирует записи из локолного реестра в файл в виде json. 
+--    2. Сохраняет файл в таблице public.register_file
+--    3. Возврящает его для передачи  
+--
+-- 
+--  Функция pf_dms_save_file сохраняет полученный файл в таблице public.global_register_file,
+--       где он обрабатывается триггерами   
+--  '192.168.100.128' - адрес ресурса с которого получен файл.
+--
 SELECT pf_dms_save_file(pf_dms_create_file(),  '192.168.100.128');
  pf_dms_save_file 
 ------------------
  t
 (1 row)
 
-SELECT * FROM public.global_register;
- num_register |                 salt                 |              hash-block              |                                                                                                                                                                                                                                                                     data                                                                                                                                                                                                                                                                     |              local_key               |    local_db     | schema_name | table_name |              inserted               
---------------+--------------------------------------+--------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------+-----------------+-------------+------------+-------------------------------------
-            1 |                                      | c60bf311-445a-40a4-9b4b-32e308789e66 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |                                      |                 |             |            | Tue May 08 09:33:01.460762 2018 PDT
-            2 | 40dc376b-f130-4b39-9b6a-da9777b06969 | 000a631d-e8e6-544e-b265-ec69956a487e | {"key": "3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6", "table": "directory", "schema": "public", "actions": [{"date": "2018-05-08 09:33:01.566623-07", "type": 0, "user": 10}], "columns": [{"name": "key", "type": "pg_dms_id", "value": "3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6"}, {"name": "num", "type": "int4", "value": "4"}]}                                                                                                                                        | 6a3767b4-4c9b-49d1-91fe-130120e7820d | 192.168.100.128 | public      | directory  | Tue May 08 09:33:01.615396 2018 PDT
-            3 | 6428198e-3a55-4511-b0eb-0664d062d4a6 | 0002348f-c9ea-a2f6-7fe7-70473f14dc9a | {"key": "73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a", "table": "directory", "schema": "public", "actions": [{"date": "2018-05-08 09:33:01.565075-07", "type": 0, "user": 10}, {"date": "2018-05-08 09:33:01.57412-07", "type": 100, "user": 10}, {"date": "2018-05-08 09:33:01.576248-07", "type": 200, "user": 10}], "columns": [{"name": "key", "type": "pg_dms_id", "value": "73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a"}, {"name": "num", "type": "int4", "value": "3"}]} | 74655216-e7dd-420c-8e29-fde24dc8e3cf | 192.168.100.128 | public      | directory  | Tue May 08 09:33:01.615396 2018 PDT
+--  Просмотр глобального реестра 
+SELECT  /*num_register, salt, hash-block, data, local_key,*/ local_db, schema_name, table_name 
+  FROM public.global_register;
+    local_db     | schema_name | table_name 
+-----------------+-------------+------------
+                 |             | 
+ 192.168.100.128 | public      | directory
+ 192.168.100.128 | public      | directory
 (3 rows)
 
-SELECT response_file, local_db from public.global_register_file WHERE status = 0;
-                                                                                                      response_file                                                                                                       |    local_db     
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------
- {"local_file" : "9fd474f2-6547-4b9d-beb1-440325e4ef08", "record" : [{"local_key": "6a3767b4-4c9b-49d1-91fe-130120e7820d", "num_register": 2}, {"local_key": "74655216-e7dd-420c-8e29-fde24dc8e3cf", "num_register": 3}]} | 192.168.100.128
+--
+--  Выходной файд и адрес куда его необходимо направить
+--
+SELECT /*response_file,*/ local_db from public.global_register_file WHERE status = 0;
+    local_db     
+-----------------
+ 192.168.100.128
 (1 row)
 
-UPDATE public.register SET status=1, num_register='e0a0c1db-a4a0-4991-bdb4-f1f8ccf3df08', ex_inserted=now();
-SELECT count(*) FROM public.register;
- count 
--------
-     2
+-- 
+--  Функция pf_dms_save_file сохраняет полученный файл в таблице public.global_register_file,
+--       где он обрабатывается триггерами   
+--  '192.168.100.128' - адрес ресурса с которого получен файл.
+-- 
+--  Функция pf_dms_save_response сохраняет полученный файл в таблице public.register_file,
+--       где он обрабатывается триггерами   
+--
+SELECT pf_dms_save_response((SELECT response_file from public.global_register_file WHERE status = 0));
+ pf_dms_save_response 
+----------------------
+ t
 (1 row)
 
-SELECT a.name, au.rolname, c.relname FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
+--  Просмотр локальног реестра 
+SELECT schema_name, table_name, column_key, status, num_register  FROM public.register;
+ schema_name | table_name | column_key | status |             num_register             
+-------------+------------+------------+--------+--------------------------------------
+ public      | directory  | key        |      1 | 00000000-0000-0000-0000-000000000002
+ public      | directory  | key        |      1 | 00000000-0000-0000-0000-000000000003
+(2 rows)
+
+SELECT a.name, au.rolname, c.relname /*, t.reason_key, t.date*/ FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
   LEFT JOIN action_list a ON t.type = a.key 
   LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
   LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
