@@ -31,8 +31,8 @@ Datum pg_dms_id_in(PG_FUNCTION_ARGS) {
 
     SET_VARSIZE(result, sizeof(pg_dms_id));
 
-    result->family = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok(str, ","))));
-    result->version = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok(NULL, ","))));
+    result->family = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok(str, "_"))));
+    result->version = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok(NULL, "_"))));
     result->actions[0].type = ACTION_CREATED;
     result->actions[0].user = GetUserId();
     result->actions[0].date = GetCurrentTransactionStartTimestamp();
@@ -43,7 +43,7 @@ Datum pg_dms_id_out(PG_FUNCTION_ARGS) {
     pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
     char *f = DatumGetCString(DirectFunctionCall1(uuid_out, UUIDPGetDatum(&id->family)));
     char *v = DatumGetCString(DirectFunctionCall1(uuid_out, UUIDPGetDatum(&id->version)));
-    char *result = psprintf("%s,%s", f, v);
+    char *result = psprintf("%s_%s", f, v);
     PG_RETURN_CSTRING(result);
 };
 //

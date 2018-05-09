@@ -24,6 +24,18 @@
             "label": "Copy resault",
             "command": "cp results/pg_dms_test.out expected/",
             "group": "test"
-        }        
+        },      
+        {
+            "type": "shell",
+            "label": "Full build, install and restart PostgreSQL server",
+            "command": "make clean && makepkg -fci --noconfirm && sudo systemctl restart postgresql.service",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+        
+  
     ]
 }

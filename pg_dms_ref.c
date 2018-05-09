@@ -28,8 +28,8 @@ pg_dms_ref_in(PG_FUNCTION_ARGS)
     if(strlen(str)!=73)
       ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED), errmsg("key -%s is invalid", str)));
     pg_dms_ref    *result = palloc(sizeof(pg_dms_ref));
-    result->family = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (str, ","))));
-    result->version = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (NULL, ","))));
+    result->family = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (str, "_"))));
+    result->version = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (NULL, "_"))));
     PG_RETURN_POINTER(result);
 }
 Datum
@@ -38,7 +38,7 @@ pg_dms_ref_out(PG_FUNCTION_ARGS)
     pg_dms_ref  *ref = PG_GETARG_PGDMSREF_P(0);
     char *f = DatumGetCString(DirectFunctionCall1(uuid_out, UUIDPGetDatum(&ref->family)));
     char *v = DatumGetCString(DirectFunctionCall1(uuid_out, UUIDPGetDatum(&ref->version)));
-    char       *result = psprintf("%s,%s", f, v);
+    char       *result = psprintf("%s_%s", f, v);
     PG_RETURN_CSTRING(result);
 };
 //

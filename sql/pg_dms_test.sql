@@ -20,23 +20,23 @@ WITH (OIDS = FALSE) TABLESPACE pg_default;
 --  Вставка заначений в виде pg_dms_id
 --
 INSERT INTO public.directory (KEY, num)
-  VALUES (('73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a')::pg_dms_id, 3);
+  VALUES (('73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a')::pg_dms_id, 3);
 --
 --  Вставка заначений в виде строки
 --
 INSERT INTO public.directory (KEY, num)
-  VALUES ('3ea227be-9932-4fb1-b47a-84c1851b419a,7cea1a82-213d-41aa-97f2-80138b538ca6', 4);
+  VALUES ('3ea227be-9932-4fb1-b47a-84c1851b419a_7cea1a82-213d-41aa-97f2-80138b538ca6', 4);
 INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf', 5);
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_29a1e5f1-33f8-477b-958d-3868edfbbfcf', 5);
 INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 6);
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 6);
 INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff', 8);
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_cc8a3b5b-9899-4038-ac01-67a6b0450eff', 8);
 --
 --  Создание новой версии строки
 --
 INSERT INTO public.directory (KEY, num)
-  VALUES (pg_dms_createversion(('ae060476-a0c1-4ec1-993f-f71ba3882796,cc8a3b5b-9899-4038-ac01-67a6b0450eff')::pg_dms_id,
+  VALUES (pg_dms_createversion(('ae060476-a0c1-4ec1-993f-f71ba3882796_cc8a3b5b-9899-4038-ac01-67a6b0450eff')::pg_dms_id,
           '6e108955-7aff-4a9c-871c-a41fb8006594'::uuid), 7);
 --
 --  Просмотр результата создания таблицы
@@ -45,11 +45,11 @@ SELECT * FROM directory order by key;
 --
 --  Поиск записей по различным условиям
 --
-SELECT * FROM directory WHERE key > '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
-SELECT * FROM directory WHERE key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
-SELECT * FROM directory WHERE key = '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
-SELECT * FROM directory WHERE key < '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
-SELECT * FROM directory WHERE key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2,eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key > '73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key >= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key = '73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key < '73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a';
+SELECT * FROM directory WHERE key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a';
 --
 --  Добавление действия со строкой
 --
@@ -118,7 +118,7 @@ CREATE TABLE public.ref (
 --
 --  Добавление записи в таблицу со ссылкий на справочник
 --
-INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1-993f-f71ba3882796,29a1e5f1-33f8-477b-958d-3868edfbbfcf','a1');
+INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1-993f-f71ba3882796_29a1e5f1-33f8-477b-958d-3868edfbbfcf','a1');
 --
 --  Просмотр результата вставки
 --
@@ -179,7 +179,7 @@ UPDATE directory SET key = pg_dms_setHash(directory, key) WHERE num = 3;
 --
 --  Добавление записи из json 
 --
-SELECT pf_dms_insert_from_json('{"schema": "public", "table": "directory", "key": "f723f29c-5dd3-4a45-a436-dc5076877c11,581c1426-e76a-4654-a23b-b948cd96453b", "columns": [{"name": "key", "type": "pg_dms_id", "value": "f723f29c-5dd3-4a45-a436-dc5076877c11,581c1426-e76a-4654-a23b-b948cd96453b"}, {"name": "num", "type": "int4", "value": "45"}], "actions": [{"type": 0, "user": 10, "date": "2018-04-29 02:47:54.911326-07"}]}'::json);
+SELECT pf_dms_insert_from_json('{"schema": "public", "table": "directory", "key": "f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b", "columns": [{"name": "key", "type": "pg_dms_id", "value": "f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b"}, {"name": "num", "type": "int4", "value": "45"}], "actions": [{"type": 0, "user": 10, "date": "2018-04-29 02:47:54.911326-07"}]}'::json);
 SELECT * FROM directory;
 --
 --  Добавление записи в реестр 
