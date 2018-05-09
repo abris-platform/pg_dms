@@ -329,13 +329,13 @@ CREATE OR REPLACE FUNCTION public.pg_dms_gethash          (record, pg_dms_id) RE
 CREATE OR REPLACE FUNCTION public.pg_dms_getStringForHash (record, pg_dms_id) RETURNS text      AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_sethash          (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_checkhash        (record, pg_dms_id) RETURNS boolean   AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION public.get_status_rigister     (pg_dms_id)         RETURNS integer   AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.get_status_registry     (pg_dms_id)         RETURNS integer   AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 --
 --
 --    record -> json
 --
 --
-CREATE OR REPLACE FUNCTION pf_dms_insert_from_json (d json) RETURNS boolean LANGUAGE 'plpgsql' AS 
+CREATE OR REPLACE FUNCTION pg_dms_insert_from_json (d json) RETURNS boolean LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
     str text;
@@ -349,10 +349,10 @@ $BODY$
 $BODY$;
 --
 --
---    register
+--    registry
 --
 --
-CREATE TABLE public.register (
+CREATE TABLE public.registry (
   "key" uuid NOT NULL DEFAULT uuid_generate_v4(),
   "data" json,
   "schema_name" text,
@@ -361,17 +361,17 @@ CREATE TABLE public.register (
   "value_key" text,
   "inserted" TimestampTz DEFAULT now(),
   "status" integer DEFAULT 0,
-  "num_register" uuid DEFAULT NULL,
+  "num_registry" uuid DEFAULT NULL,
   "ex_inserted" TimestampTz DEFAULT NULL,
-  CONSTRAINT register_pkey PRIMARY KEY (KEY)
+  CONSTRAINT registry_pkey PRIMARY KEY (KEY)
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 --
 --
---    record -> register
+--    record -> registry
 --
 --
-CREATE OR REPLACE FUNCTION pf_dms_insert_to_register (schema_name text, table_name text, column_key text, key pg_dms_id) 
+CREATE OR REPLACE FUNCTION pg_dms_insert_to_registry (schema_name text, table_name text, column_key text, key pg_dms_id) 
 RETURNS boolean LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
@@ -383,12 +383,12 @@ $BODY$
        schema_name || '.' || table_name || ' WHERE ' || column_key || '=''' || key ||'''';
     EXECUTE str INTO data;
 
-    str = 'INSERT INTO public.register (data, schema_name, table_name, column_key, value_key) VALUES (''' || 
+    str = 'INSERT INTO public.registry (data, schema_name, table_name, column_key, value_key) VALUES (''' || 
       data || '''::json, ''' || schema_name || ''', ''' || table_name || ''', ''' || column_key || ''', ''' || key || ''') RETURNING key';
     EXECUTE str INTO result; 
 
     str = 'UPDATE ' || schema_name || '.' || table_name || ' SET '|| column_key ||
-      ' = pg_dms_setaction(key, -20, ' || (SELECT oid FROM pg_class WHERE relname = 'register' LIMIT 1) || ', ''' || result || ''')'|| 
+      ' = pg_dms_setaction(key, -20, ' || (SELECT oid FROM pg_class WHERE relname = 'registry' LIMIT 1) || ', ''' || result || ''')'|| 
       ' WHERE ' || column_key || '=''' || key ||'''';
     EXECUTE str;
 
@@ -400,45 +400,45 @@ $BODY$;
 --    update record 
 --
 --
-CREATE OR REPLACE FUNCTION register_update_tf () 
+CREATE OR REPLACE FUNCTION registry_update_tf () 
 RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
     str text;
   BEGIN
     str = 'UPDATE ' || new.schema_name || '.' || new.table_name || ' SET '|| new.column_key ||
-      ' = pg_dms_setaction(key, -30, ' || (SELECT oid FROM pg_class WHERE relname = 'register' LIMIT 1) || ', ''' || new.num_register || ''')'|| 
+      ' = pg_dms_setaction(key, -30, ' || (SELECT oid FROM pg_class WHERE relname = 'registry' LIMIT 1) || ', ''' || new.num_registry || ''')'|| 
       ' WHERE ' || new.column_key || '=''' || new.value_key ||'''';
     EXECUTE str;
     RETURN new;
   END;
 $BODY$;
 --
-CREATE TRIGGER rigister_update_tr
+CREATE TRIGGER registry_update_tr
     AFTER UPDATE 
-    ON public.register
+    ON public.registry
     FOR EACH ROW
-    EXECUTE PROCEDURE public.register_update_tf();
+    EXECUTE PROCEDURE public.registry_update_tf();
 --
 --
---    register_file
+--    registry_file
 --
 --
-CREATE TABLE public.register_file (
+CREATE TABLE public.registry_file (
   "key" uuid NOT NULL DEFAULT uuid_generate_v4(),
   "file" json,
   "inserted" TimestampTz DEFAULT now(),
   "response_file" json,
   "status" integer DEFAULT 0,
-  CONSTRAINT register_file_pkey PRIMARY KEY (KEY)
+  CONSTRAINT registry_file_pkey PRIMARY KEY (KEY)
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 --
 --
---    register_file_update 
+--    registry_file_update 
 --
 --
-CREATE OR REPLACE FUNCTION register_file_update_tf () 
+CREATE OR REPLACE FUNCTION registry_file_update_tf () 
 RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
@@ -448,31 +448,31 @@ $BODY$
     IF new.response_file IS NOT NULL THEN
       FOR x IN SELECT * FROM json_array_elements(new.response_file)
       LOOP
-        UPDATE public.register SET status=1, num_register=lpad(x->>'num_register', 32, '0')::uuid WHERE key = (x->>'local_key')::uuid;
+        UPDATE public.registry SET status=1, num_registry=lpad(x->>'num_registry', 32, '0')::uuid WHERE key = (x->>'local_key')::uuid;
       END LOOP;
     END IF;
     RETURN new;
   END;
 $BODY$;
 --
-CREATE TRIGGER register_file_update_tr
+CREATE TRIGGER registry_file_update_tr
     AFTER UPDATE 
-    ON public.register_file
+    ON public.registry_file
     FOR EACH ROW
-    EXECUTE PROCEDURE public.register_file_update_tf();
+    EXECUTE PROCEDURE public.registry_file_update_tf();
 --
 --
 --    create_file record_out 
 --
 --
-CREATE OR REPLACE FUNCTION pf_dms_create_file  () 
+CREATE OR REPLACE FUNCTION pg_dms_create_file  () 
 RETURNS json LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
     ret json;
   BEGIN
-    INSERT INTO public.register_file (file) 
-      VALUES ((SELECT jsonb_agg( json_build_object('local_key', r.key, 'data', r.data)) FROM register r where r.status = 0))
+    INSERT INTO public.registry_file (file) 
+      VALUES ((SELECT jsonb_agg( json_build_object('local_key', r.key, 'data', r.data)) FROM registry r where r.status = 0))
       RETURNING json_build_object('key_file', key, 'records', file) INTO ret; 
     RETURN ret;
   END;
@@ -482,22 +482,22 @@ $BODY$;
 --    save response 
 --
 --
-CREATE OR REPLACE FUNCTION pf_dms_save_response  (resp json) 
+CREATE OR REPLACE FUNCTION pg_dms_save_response  (resp json) 
 RETURNS boolean LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
     ret json;
   BEGIN
-    UPDATE public.register_file SET response_file = (resp->>'records')::json WHERE key =  (resp->>'local_file')::uuid;
+    UPDATE public.registry_file SET response_file = (resp->>'records')::json WHERE key =  (resp->>'local_file')::uuid;
     RETURN true;
   END;
 $BODY$;
 --
 --
---    global_register_file
+--    global_registry_file
 --
 --
-CREATE TABLE public.global_register_file (
+CREATE TABLE public.global_registry_file (
   "key_file" uuid NOT NULL DEFAULT uuid_generate_v4(),
   "local_db" inet,
   "local_key" uuid,
@@ -505,64 +505,64 @@ CREATE TABLE public.global_register_file (
   "inserted" TimestampTz DEFAULT now(),
   "response_file" json,
   "status" integer DEFAULT 0,
-  CONSTRAINT global_register_file_pkey PRIMARY KEY (key_file)
+  CONSTRAINT global_registry_file_pkey PRIMARY KEY (key_file)
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
 --
 --
---    global_register_file_insert 
+--    global_registry_file_insert 
 --
 --
-CREATE OR REPLACE FUNCTION global_register_file_insert_tf () 
+CREATE OR REPLACE FUNCTION global_registry_file_insert_tf () 
 RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
     str json;
   BEGIN
-    WITH inserted(num_register, local_key) AS (
-      INSERT INTO public.global_register (local_key, table_name, schema_name, data, local_db)
+    WITH inserted(num_registry, local_key) AS (
+      INSERT INTO public.global_registry (local_key, table_name, schema_name, data, local_db)
         SELECT (record->>'local_key')::uuid AS local_key, 
                 record->'data'->>'table' AS table_name, 
                 record->'data'->>'schema' AS schema_name, 
                 record->'data' AS data,
                 new.local_db AS local_db
-          FROM (SELECT json_array_elements(local_file->'records') AS record FROM public.global_register_file WHERE status = 0) AS record
-        RETURNING num_register, local_key
+          FROM (SELECT json_array_elements(local_file->'records') AS record FROM public.global_registry_file WHERE status = 0) AS record
+        RETURNING num_registry, local_key
     )
-    SELECT jsonb_agg(json_build_object('local_key',local_key,'num_register',num_register)) FROM inserted INTO str;
+    SELECT jsonb_agg(json_build_object('local_key',local_key,'num_registry',num_registry)) FROM inserted INTO str;
 
-    UPDATE public.global_register_file SET response_file = json_build_object('local_file',new.local_key, 'records', str);
+    UPDATE public.global_registry_file SET response_file = json_build_object('local_file',new.local_key, 'records', str);
     RETURN new;
   END;
 $BODY$;
 --
-CREATE TRIGGER global_register_file_insert_tr
+CREATE TRIGGER global_registry_file_insert_tr
     AFTER INSERT 
-    ON public.global_register_file
+    ON public.global_registry_file
     FOR EACH ROW
-    EXECUTE PROCEDURE public.global_register_file_insert_tf();
+    EXECUTE PROCEDURE public.global_registry_file_insert_tf();
 --
 --
 --    save_file record_out 
 --
 --
-CREATE OR REPLACE FUNCTION pf_dms_save_file  (_ex_file json, _database inet) 
+CREATE OR REPLACE FUNCTION pg_dms_save_file  (_ex_file json, _database inet) 
 RETURNS boolean LANGUAGE 'plpgsql' AS 
 $BODY$
   BEGIN
-    INSERT INTO public.global_register_file (local_key, local_file, local_db) 
+    INSERT INTO public.global_registry_file (local_key, local_file, local_db) 
       VALUES ((_ex_file->>'key_file')::uuid, _ex_file,  _database);
     RETURN true;
   END;
 $BODY$;
 --
 --
---    global_register 
+--    global_registry 
 --
 --
-CREATE SEQUENCE public.global_register_seq;
-CREATE TABLE public.global_register (
-  "num_register" integer NOT NULL DEFAULT nextval('global_register_seq'::regclass),
+CREATE SEQUENCE public.global_registry_seq;
+CREATE TABLE public.global_registry (
+  "num_registry" integer NOT NULL DEFAULT nextval('global_registry_seq'::regclass),
   "salt" uuid,
   "hash-block" uuid,
   "data" json,
@@ -571,22 +571,22 @@ CREATE TABLE public.global_register (
   "schema_name" text,
   "table_name" text,
   "inserted" TimestampTz DEFAULT now(),
-  CONSTRAINT global_register_pkey PRIMARY KEY ("num_register")
+  CONSTRAINT global_registry_pkey PRIMARY KEY ("num_registry")
 )
 WITH (OIDS = FALSE) TABLESPACE pg_default;
-INSERT INTO public.global_register ("hash-block") VALUES('c60bf311-445a-40a4-9b4b-32e308789e66');
+INSERT INTO public.global_registry ("hash-block") VALUES('c60bf311-445a-40a4-9b4b-32e308789e66');
 --
 --
---    global_register 
+--    global_registry 
 --
 --
-CREATE OR REPLACE FUNCTION global_register_tf () 
+CREATE OR REPLACE FUNCTION global_registry_tf () 
 RETURNS TRIGGER LANGUAGE 'plpgsql' AS 
 $BODY$
   DECLARE
     prev_hash uuid;
   BEGIN
-    SELECT "hash-block" FROM public.global_register WHERE num_register = (new.num_register -1) INTO prev_hash;
+    SELECT "hash-block" FROM public.global_registry WHERE num_registry = (new.num_registry -1) INTO prev_hash;
 -- Обязательное условие - хеш должен начинаться с 000       
     LOOP
       new.salt = uuid_generate_v4();
@@ -597,8 +597,8 @@ $BODY$
   END;
 $BODY$;
 
-CREATE TRIGGER global_register_tr
+CREATE TRIGGER global_registry_tr
     BEFORE INSERT 
-    ON public.global_register
+    ON public.global_registry
     FOR EACH ROW
-    EXECUTE PROCEDURE public.global_register_tf();
+    EXECUTE PROCEDURE public.global_registry_tf();

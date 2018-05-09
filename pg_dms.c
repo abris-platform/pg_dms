@@ -357,11 +357,11 @@ Datum pg_dms_checkhash(PG_FUNCTION_ARGS) {
 }
 //
 //
-//  id -> get_status_rigister
+//  id -> get_status_registry
 //
 //
-PG_FUNCTION_INFO_V1(get_status_rigister);
-Datum get_status_rigister(PG_FUNCTION_ARGS) {
+PG_FUNCTION_INFO_V1(get_status_registry);
+Datum get_status_registry(PG_FUNCTION_ARGS) {
     pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
     int count = PG_DMS_ID_ACTIONS_COUNT(id);
     int status = 0;
@@ -370,7 +370,7 @@ Datum get_status_rigister(PG_FUNCTION_ARGS) {
             status = 1;
             break;
         }
-        if (id->actions[i].type == ACTION_SEND_REJISTER) {
+        if (id->actions[i].type == ACTION_SEND_REGISTRY) {
             status = -1;
             break;
         }

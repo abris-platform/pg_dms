@@ -123,29 +123,6 @@ INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1
 --  Просмотр результата вставки
 --
 SELECT * FROM public.ref LEFT JOIN  public.directory ON ref.directory_key = directory.key;
-
-/*
-Не создается CONSTRAINT 
-ERROR:  foreign key constraint "test_uuid_directory_fkey" cannot be implemented
-DETAIL:  Key columns "directory_key" and "key" are of incompatible types: uuid and pg_dms_id.
-
-CREATE TABLE public.test_uuid (
-  KEY integer NOT NULL,
-  directory_key uuid,
-  name text,
-  CONSTRAINT test_uuid_pkey PRIMARY KEY (KEY),
-  CONSTRAINT test_uuid_directory_fkey FOREIGN KEY (directory_key) REFERENCES public.directory (KEY)
-)
-  WITH (OIDS = FALSE) TABLESPACE pg_default;
---
---  Добавление записи в таблицу со ссылкий на справочник
---
-INSERT INTO public.ref (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1-993f-f71ba3882796','a1');
---
---  Просмотр результата вставки
---
-SELECT * FROM public.ref LEFT JOIN  public.directory ON ref.directory_key = directory.key;
-*/
 --
 --  Расчет JSON
 --
@@ -179,66 +156,66 @@ UPDATE directory SET key = pg_dms_setHash(directory, key) WHERE num = 3;
 --
 --  Добавление записи из json 
 --
-SELECT pf_dms_insert_from_json('{"schema": "public", "table": "directory", "key": "f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b", "columns": [{"name": "key", "type": "pg_dms_id", "value": "f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b"}, {"name": "num", "type": "int4", "value": "45"}], "actions": [{"type": 0, "user": 10, "date": "2018-04-29 02:47:54.911326-07"}]}'::json);
+SELECT pg_dms_insert_from_json('{"schema": "public", "table": "directory", "key": "f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b", "columns": [{"name": "key", "type": "pg_dms_id", "value": "f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b"}, {"name": "num", "type": "int4", "value": "45"}], "actions": [{"type": 0, "user": 10, "date": "2018-04-29 02:47:54.911326-07"}]}'::json);
 SELECT * FROM directory;
 --
 --  Добавление записи в реестр 
 --
---SELECT pf_dms_insert_to_register('public', 'directory', 'key', key) FROM public.directory WHERE num = 3;
+--SELECT pg_dms_insert_to_registry('public', 'directory', 'key', key) FROM public.directory WHERE num = 3;
 
-SELECT pf_dms_insert_to_register('public', 'directory', 'key', key) FROM public.directory WHERE num < 5;
+SELECT pg_dms_insert_to_registry('public', 'directory', 'key', key) FROM public.directory WHERE num < 5;
 
-SELECT count(*) FROM public.register;
+SELECT count(*) FROM public.registry;
 SELECT a.name, au.rolname, c.relname FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
   LEFT JOIN action_list a ON t.type = a.key 
   LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
   LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
 
-SELECT get_status_rigister(key), num FROM  directory; 
+SELECT get_status_registry(key), num FROM  directory; 
 
 
 
 -- 
---  Функция pf_dms_create_file 
+--  Функция pg_dms_create_file 
 --    1. Группирует записи из локолного реестра в файл в виде json. 
---    2. Сохраняет файл в таблице public.register_file
+--    2. Сохраняет файл в таблице public.registry_file
 --    3. Возврящает его для передачи  
 --
 -- 
---  Функция pf_dms_save_file сохраняет полученный файл в таблице public.global_register_file,
+--  Функция pg_dms_save_file сохраняет полученный файл в таблице public.global_registry_file,
 --       где он обрабатывается триггерами   
 --  '192.168.100.128' - адрес ресурса с которого получен файл.
 --
-SELECT pf_dms_save_file(pf_dms_create_file(),  '192.168.100.128');
+SELECT pg_dms_save_file(pg_dms_create_file(),  '192.168.100.128');
 
 --  Просмотр глобального реестра 
-SELECT  /*num_register, salt, hash-block, data, local_key,*/ local_db, schema_name, table_name 
-  FROM public.global_register;
+SELECT  /*num_registry, salt, hash-block, data, local_key,*/ local_db, schema_name, table_name 
+  FROM public.global_registry;
 
 --
 --  Выходной файд и адрес куда его необходимо направить
 --
-SELECT /*response_file,*/ local_db from public.global_register_file WHERE status = 0;
+SELECT /*response_file,*/ local_db from public.global_registry_file WHERE status = 0;
 -- 
---  Функция pf_dms_save_file сохраняет полученный файл в таблице public.global_register_file,
+--  Функция pg_dms_save_file сохраняет полученный файл в таблице public.global_registry_file,
 --       где он обрабатывается триггерами   
 --  '192.168.100.128' - адрес ресурса с которого получен файл.
 
 -- 
---  Функция pf_dms_save_response сохраняет полученный файл в таблице public.register_file,
+--  Функция pg_dms_save_response сохраняет полученный файл в таблице public.registry_file,
 --       где он обрабатывается триггерами   
 --
-SELECT pf_dms_save_response((SELECT response_file from public.global_register_file WHERE status = 0));
+SELECT pg_dms_save_response((SELECT response_file from public.global_registry_file WHERE status = 0));
 
 --  Просмотр локальног реестра 
-SELECT schema_name, table_name, column_key, status, num_register  FROM public.register;
+SELECT schema_name, table_name, column_key, status, num_registry  FROM public.registry;
 
 SELECT a.name, au.rolname, c.relname /*, t.reason_key, t.date*/ FROM unnest((SELECT pg_dms_getaction(key) FROM directory WHERE num = 3) ) AS t
   LEFT JOIN action_list a ON t.type = a.key 
   LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
   LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
 
-SELECT get_status_rigister(key), num FROM  directory;
+SELECT get_status_registry(key), num FROM  directory;
 
  
 SELECT pg_dms_getlevel(key), num FROM  directory; 
