@@ -391,7 +391,8 @@ Datum pg_dms_getlevel(PG_FUNCTION_ARGS) {
     int max = 0;
     for (int i = 0; i < count; i++) {
         if (id->actions[i].type == ACTION_APPROVED) {
-            status = ((long)(GetCurrentTimestamp() - id->actions[i].date))/1000000l;
+            //Переводим разницу в минуты
+            status = ((long)(GetCurrentTimestamp() - id->actions[i].date))/60000000l;
         }
         if (id->actions[i].type >= max) {
             max = id->actions[i].type;
@@ -400,8 +401,9 @@ Datum pg_dms_getlevel(PG_FUNCTION_ARGS) {
     if(max < ACTION_APPROVED){
         status = INT_MAX;
     }
+    //Для архивированных записей добавляем приблизительно 190 лет в минуты
     if(max > ACTION_APPROVED){
-        status += 3000000000;
+        status += 100000000;
     }
     PG_RETURN_INT32(status);
 };
