@@ -238,6 +238,9 @@ SELECT a.name, au.rolname, c.relname /*, t.reason_key, t.date*/ FROM unnest((SEL
   LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
   LEFT JOIN pg_catalog.pg_class c ON t.reason = c.oid;
 
-SELECT get_status_rigister(key), num FROM  directory; 
+SELECT get_status_rigister(key), num FROM  directory;
+
+ 
+SELECT pg_dms_getlevel(key), num FROM  directory; 
 
 

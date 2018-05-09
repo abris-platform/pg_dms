@@ -377,3 +377,31 @@ Datum get_status_rigister(PG_FUNCTION_ARGS) {
     }
     PG_RETURN_INT32(status);
 };
+
+//
+//
+//  id -> getlevel
+//
+//
+PG_FUNCTION_INFO_V1(pg_dms_getlevel);
+Datum pg_dms_getlevel(PG_FUNCTION_ARGS) {
+    pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
+    int count = PG_DMS_ID_ACTIONS_COUNT(id);
+    long status = 0;
+    int max = 0;
+    for (int i = 0; i < count; i++) {
+        if (id->actions[i].type == ACTION_APPROVED) {
+            status = ((long)(GetCurrentTimestamp() - id->actions[i].date))/1000000l;
+        }
+        if (id->actions[i].type >= max) {
+            max = id->actions[i].type;
+        }
+    }
+    if(max < ACTION_APPROVED){
+        status = INT_MAX;
+    }
+    if(max > ACTION_APPROVED){
+        status += 3000000000;
+    }
+    PG_RETURN_INT32(status);
+};

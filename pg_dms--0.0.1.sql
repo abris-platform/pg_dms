@@ -311,9 +311,10 @@ USING btree ADD
 --    id extra
 --
 --
-CREATE FUNCTION pg_dms_getstatus(pg_dms_id)      RETURNS int    AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
-CREATE FUNCTION pg_dms_getaction(pg_dms_id)      RETURNS pg_dms_action_t[]    AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
-CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid)    RETURNS pg_dms_id    AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_getstatus(pg_dms_id)                 RETURNS int               AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_getaction(pg_dms_id)                 RETURNS pg_dms_action_t[] AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_getlevel(pg_dms_id)                  RETURNS int               AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid) RETURNS pg_dms_id         AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 --
 --
 --    uuid -> id
@@ -323,12 +324,12 @@ CREATE OR REPLACE FUNCTION public.pg_dms_uuid2id (uuid) RETURNS pg_dms_id AS 'pg
 CREATE CAST(uuid AS pg_dms_id) WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS ASSIGNMENT;
 
 CREATE OR REPLACE FUNCTION public.pg_dms_createVersion    (pg_dms_id, uuid)   RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION public.pg_dms_getjson          (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION public.pg_dms_gethash          (record, pg_dms_id) RETURNS uuid AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION public.pg_dms_getStringForHash (record, pg_dms_id) RETURNS text AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_getjson          (record, pg_dms_id) RETURNS text      AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_gethash          (record, pg_dms_id) RETURNS uuid      AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_getStringForHash (record, pg_dms_id) RETURNS text      AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_sethash          (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION public.pg_dms_checkhash        (record, pg_dms_id) RETURNS boolean AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
-CREATE OR REPLACE FUNCTION public.get_status_rigister     (pg_dms_id)         RETURNS integer AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.pg_dms_checkhash        (record, pg_dms_id) RETURNS boolean   AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE OR REPLACE FUNCTION public.get_status_rigister     (pg_dms_id)         RETURNS integer   AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 --
 --
 --    record -> json
@@ -586,9 +587,10 @@ $BODY$
     prev_hash uuid;
   BEGIN
     SELECT "hash-block" FROM public.global_register WHERE num_register = (new.num_register -1) INTO prev_hash;
+-- Обязательное условие - хеш должен начинаться с 000       
     LOOP
       new.salt = uuid_generate_v4();
-      new."hash-block" = md5(new.data::text || prev_hash::text || new.salt::text ); 
+      new."hash-block" = md5(new.data::text || prev_hash::text || new.salt::text );
       EXIT  WHEN substring(new."hash-block"::text,1,3) = '000';
     END LOOP;
     RETURN new;
