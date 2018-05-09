@@ -255,7 +255,7 @@ void getStringForHash(HeapTupleHeader record, pg_dms_id *id, StringInfo result) 
         if (id->actions[i].type >= 0) {
             appendStringInfo(result, "%d", id->actions[i].type);
             appendStringInfo(result, "%d", id->actions[i].user);
-            appendStringInfo(result, timestamptz_to_str(id->actions[i].date));
+            appendStringInfo(result, "%s", timestamptz_to_str(id->actions[i].date));
         }
     }
     ReleaseTupleDesc(recordDesc);
