@@ -26,18 +26,19 @@ INSERT INTO public.directory (KEY, num)
 --
 INSERT INTO public.directory (KEY, num)
   VALUES ('3ea227be-9932-4fb1-b47a-84c1851b419a_7cea1a82-213d-41aa-97f2-80138b538ca6', 4);
+--
+--  Вставка семейства
+--
 INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_29a1e5f1-33f8-477b-958d-3868edfbbfcf', 5);
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_29a1e5f1-33f8-477b-958d-3868edfbbfcf', 11);
 INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 6);
-INSERT INTO public.directory (KEY, num)
-  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_cc8a3b5b-9899-4038-ac01-67a6b0450eff', 8);
+  VALUES ('ae060476-a0c1-4ec1-993f-f71ba3882796_381adf5e-5ec2-4855-a25d-b22ef99fcfa8', 12);
 --
 --  Создание новой версии строки
 --
 INSERT INTO public.directory (KEY, num)
   VALUES (pg_dms_createversion(('ae060476-a0c1-4ec1-993f-f71ba3882796_cc8a3b5b-9899-4038-ac01-67a6b0450eff')::pg_dms_id,
-          '6e108955-7aff-4a9c-871c-a41fb8006594'::uuid), 7);
+          '6e108955-7aff-4a9c-871c-a41fb8006594'::uuid), 13);
 --
 --  Просмотр результата создания таблицы
 --
@@ -53,8 +54,8 @@ SELECT * FROM directory WHERE key <= '73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a
 --
 --  Добавление действия со строкой
 --
-UPDATE directory SET key=pg_dms_setaction(key, 100, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
-UPDATE directory SET key=pg_dms_setaction(key, 200, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 3;
+UPDATE directory SET key=pg_dms_setaction(key, 100, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 13;
+UPDATE directory SET key=pg_dms_setaction(key, 200, (SELECT oid FROM pg_class WHERE relname = 'directory'), '73a0d05a-d681-4bb3-9e31-9f52ee938ad2'::uuid) WHERE num = 13;
 --
 --  Получение статуса строки
 --
@@ -100,6 +101,10 @@ CREATE TABLE public.family (
 --  Добавление записи в таблицу со ссылкий на справочник
 --
 INSERT INTO public.family (key, directory_key, name) VALUES (1, 'ae060476-a0c1-4ec1-993f-f71ba3882796','a1');
+--
+--  Добавление записи в таблицу без ссылки на справочник
+--
+INSERT INTO public.family (key, directory_key, name) VALUES (2, null,'a1');
 --
 --  Просмотр результата вставки
 --
@@ -217,7 +222,21 @@ SELECT a.name, au.rolname, c.relname /*, t.reason_key, t.date*/ FROM unnest((SEL
 
 SELECT get_status_registry(key), num FROM  directory;
 
- 
+--
+--  Просмотр уровня версии (минуты от текушего времени до времени установки статуса документ или максимальное время)
+-- 
 SELECT pg_dms_getlevel(key), num FROM  directory; 
-
-
+--
+--  Просмотр преобразования ключа pg_dms_id в pg_dms_family
+-- 
+SELECT key::pg_dms_family, num FROM  directory; 
+--
+--  Просмотр главного запроса на выборку данных из таблицы "public"."family" со ссылкой на справочник
+-- 
+SELECT "t"."key"::text, "t"."name"::text, (row_to_json(row(COALESCE(t0."key"::text,'')||' '|| COALESCE(t0."num"::text,''), t0."key"::text))::text) collate "C" as "directory_key"
+FROM "public"."family" as t  
+left join (select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getlevel(key)) as "t0" on "t"."directory_key" = "t0"."key" where (true);   
+--
+--  Просмотр актуальных данных из справочника
+-- 
+select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getlevel(key)

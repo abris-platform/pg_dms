@@ -323,6 +323,14 @@ CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid) RETURNS pg_dms_id   
 CREATE OR REPLACE FUNCTION public.pg_dms_uuid2id (uuid) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE CAST(uuid AS pg_dms_id) WITH FUNCTION public.pg_dms_uuid2id (a uuid) AS ASSIGNMENT;
 
+--
+--
+--    id -> family
+--
+--
+CREATE OR REPLACE FUNCTION public.pg_dms_id2family (pg_dms_id) RETURNS pg_dms_family AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+CREATE CAST(pg_dms_id AS pg_dms_family) WITH FUNCTION public.pg_dms_id2family (a pg_dms_id) AS ASSIGNMENT;
+
 CREATE OR REPLACE FUNCTION public.pg_dms_createVersion    (pg_dms_id, uuid)   RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_getjson          (record, pg_dms_id) RETURNS text      AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_gethash          (record, pg_dms_id) RETURNS uuid      AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;

@@ -68,6 +68,19 @@ Datum pg_dms_uuid2id(PG_FUNCTION_ARGS) {
 }
 //
 //
+//  uuid -> id
+//
+//
+PG_FUNCTION_INFO_V1(pg_dms_id2family);
+Datum pg_dms_id2family(PG_FUNCTION_ARGS) {
+    pg_dms_id *a = PG_GETARG_PGDMSID_P(0);
+    pg_dms_family *result = palloc(sizeof(pg_dms_family));
+
+    result->family = a->family;
+    PG_RETURN_POINTER(result);
+}
+//
+//
 //  id <-> id
 //
 //
