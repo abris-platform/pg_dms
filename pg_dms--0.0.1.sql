@@ -314,6 +314,7 @@ USING btree ADD
 CREATE FUNCTION pg_dms_getstatus(pg_dms_id)                 RETURNS int               AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION pg_dms_getaction(pg_dms_id)                 RETURNS pg_dms_action_t[] AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION pg_dms_getlevel(pg_dms_id)                  RETURNS int               AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
+CREATE FUNCTION pg_dms_getancientry(pg_dms_id)              RETURNS int               AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 CREATE FUNCTION pg_dms_setaction(pg_dms_id, int, oid, uuid) RETURNS pg_dms_id         AS 'pg_dms.so'    LANGUAGE C IMMUTABLE STRICT;
 --
 --

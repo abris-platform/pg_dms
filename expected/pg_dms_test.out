@@ -462,14 +462,26 @@ left join (select distinct on (key::pg_dms_family) * from "public"."directory" o
 (2 rows)
 
 --
---  Просмотр актуальных данных из справочника
+--  Просмотр актуальных данных из справочника  с точностью до минут
 -- 
-select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getlevel(key)
+select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getlevel(key);
                                     key                                    | num 
 ---------------------------------------------------------------------------+-----
  3ea227be-9932-4fb1-b47a-84c1851b419a_7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
  73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
  ae060476-a0c1-4ec1-993f-f71ba3882796_6e108955-7aff-4a9c-871c-a41fb8006594 |  13
+ f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b |  45
+(4 rows)
+
+--
+--  Просмотр последних созданных данных из справочника с точностью до минут
+-- 
+select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getancientry(key);
+                                    key                                    | num 
+---------------------------------------------------------------------------+-----
+ 3ea227be-9932-4fb1-b47a-84c1851b419a_7cea1a82-213d-41aa-97f2-80138b538ca6 |   4
+ 73a0d05a-d681-4bb3-9e31-9f52ee938ad2_eec4a453-4a90-49e9-8044-b6b51311ad5a |   3
+ ae060476-a0c1-4ec1-993f-f71ba3882796_29a1e5f1-33f8-477b-958d-3868edfbbfcf |  11
  f723f29c-5dd3-4a45-a436-dc5076877c11_581c1426-e76a-4654-a23b-b948cd96453b |  45
 (4 rows)
 

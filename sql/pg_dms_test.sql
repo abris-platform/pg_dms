@@ -237,6 +237,10 @@ SELECT "t"."key"::text, "t"."name"::text, (row_to_json(row(COALESCE(t0."key"::te
 FROM "public"."family" as t  
 left join (select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getlevel(key)) as "t0" on "t"."directory_key" = "t0"."key" where (true);   
 --
---  Просмотр актуальных данных из справочника
+--  Просмотр актуальных данных из справочника  с точностью до минут
 -- 
-select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getlevel(key)
+select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getlevel(key);
+--
+--  Просмотр последних созданных данных из справочника с точностью до минут
+-- 
+select distinct on (key::pg_dms_family) * from "public"."directory" order by key::pg_dms_family, pg_dms_getancientry(key);

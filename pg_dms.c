@@ -407,3 +407,22 @@ Datum pg_dms_getlevel(PG_FUNCTION_ARGS) {
     }
     PG_RETURN_INT32(status);
 };
+//
+//
+//  id -> getancientry
+//
+//
+PG_FUNCTION_INFO_V1(pg_dms_getancientry);
+Datum pg_dms_getancientry(PG_FUNCTION_ARGS) {
+    pg_dms_id *id = PG_GETARG_PGDMSID_P(0);
+    int count = PG_DMS_ID_ACTIONS_COUNT(id);
+    long status = 0;
+    for (int i = 0; i < count; i++) {
+        if (id->actions[i].type == ACTION_CREATED) {
+            //Переводим разницу в минуты
+            status = ((long)(GetCurrentTimestamp() - id->actions[i].date))/60000000l;
+            break;
+        }
+    }
+    PG_RETURN_INT32(status);
+};
