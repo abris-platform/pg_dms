@@ -1,0 +1,11 @@
+Source: pg-dms-deb
+Section: libs
+Maintainer: fdanilkin <fdanilkin@yandex.ru>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.2
+
+Package: pg-dms-deb
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, postgresql-server-dev-all
+Description: Document Management Sysytem for PostgreSQL
