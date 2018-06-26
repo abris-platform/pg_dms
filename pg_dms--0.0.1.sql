@@ -339,6 +339,24 @@ CREATE OR REPLACE FUNCTION public.pg_dms_getStringForHash (record, pg_dms_id) RE
 CREATE OR REPLACE FUNCTION public.pg_dms_sethash          (record, pg_dms_id) RETURNS pg_dms_id AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.pg_dms_checkhash        (record, pg_dms_id) RETURNS boolean   AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION public.get_status_registry     (pg_dms_id)         RETURNS integer   AS 'pg_dms.so' LANGUAGE C IMMUTABLE STRICT;
+
+
+CREATE FUNCTION public.pg_dms_createversion(id public.pg_dms_id) RETURNS public.pg_dms_id
+    LANGUAGE sql
+    AS $$
+  select pg_dms_createversion (id, uuid_generate_v4());
+$$;
+
+
+CREATE FUNCTION public.pg_dms_getaction_format(key public.pg_dms_id) RETURNS text
+    LANGUAGE sql
+    AS $$SELECT array_to_string(array_agg(a.name||E'\t'||au.rolname||E'\t'||'('||to_char("date", 'DD.MM.YYYY HH24:MI')||')'),E'\n') FROM unnest(pg_dms_getaction(key)) AS t
+LEFT JOIN action_list a ON t.type = a.key 
+LEFT JOIN pg_catalog.pg_authid au ON t.user = au.oid
+$$;
+
+
+
 --
 --
 --    record -> json
