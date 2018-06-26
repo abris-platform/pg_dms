@@ -27,7 +27,7 @@ pg_dms_family_in(PG_FUNCTION_ARGS)
 {
     char         *str = PG_GETARG_CSTRING(0);
     pg_dms_family    *result = palloc(sizeof(pg_dms_family));
-    result->family = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (str, ","))));
+    result->family = *DatumGetUUIDP(DirectFunctionCall1(uuid_in, CStringGetDatum(strtok (str, "_"))));
     PG_RETURN_POINTER(result);
 }
 Datum
