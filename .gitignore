@@ -7,3 +7,9 @@ regression.diffs
 regression.out
 results/
 pg_dms_ref.o
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/.debhelper
+debian/pg-dms-deb
+debian/result
