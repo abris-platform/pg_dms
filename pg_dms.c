@@ -147,6 +147,7 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
     ReleaseSysCache(tableTypeTuple);
     ReleaseSysCache(tableTypeNamespaceTuple);
     AttInMetadata *attinmeta = TupleDescGetAttInMetadata(recordDesc);
+    bool columnListEmpty = true;
     for (int i = 0; i < recordDesc->natts; i++) {
         if (TupleDescAttr(recordDesc, i)->attisdropped) {
             continue;
@@ -165,9 +166,10 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
         bool typIsVarlena;
         getTypeOutputInfo(attinmeta->attioparams[i], &typoutput, &typIsVarlena);
         char *value = !isNull ? OidOutputFunctionCall(typoutput, d) : NULL;
-        if (i > 0) {
-            appendStringInfoString(result, ", ");
-        }
+        if (columnListEmpty)
+          appendStringInfoString(result, ", ");
+        else 
+          columnListEmpty = false;
         appendStringInfoString(result, "{");
         escape_json(result, "name");
         appendStringInfoString(result, ": ");
