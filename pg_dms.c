@@ -166,7 +166,7 @@ Datum pg_dms_getjson(PG_FUNCTION_ARGS) {
         bool typIsVarlena;
         getTypeOutputInfo(attinmeta->attioparams[i], &typoutput, &typIsVarlena);
         char *value = !isNull ? OidOutputFunctionCall(typoutput, d) : NULL;
-        if (columnListEmpty)
+        if (!columnListEmpty)
           appendStringInfoString(result, ", ");
         else 
           columnListEmpty = false;
